@@ -1,4 +1,4 @@
-#include "multibot2_util/robot.h"
+#include "multibot2_util/base_robot_info.h"
 
 namespace multibot2_util
 {
