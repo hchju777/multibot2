@@ -7,15 +7,10 @@
 #include <geometry_msgs/msg/pose.hpp>
 #include <geometry_msgs/msg/pose2_d.hpp>
 
-#include <CGAL/Exact_predicates_exact_constructions_kernel.h>
-
 namespace multibot2_util
 {
     class Pose
     {
-    protected:
-        typedef CGAL::Exact_predicates_exact_constructions_kernel Kernel;
-
     public:
         Pose() { setZero(); }
 
@@ -52,13 +47,6 @@ namespace multibot2_util
             position_.coeffRef(0) = _pose2d.x;
             position_.coeffRef(1) = _pose2d.y;
             theta_ = _pose2d.theta;
-        }
-
-        Pose(const Kernel::Point_2 &_point, double _theta)
-        {
-            position_.coeffRef(0) = CGAL::to_double(_point.x());
-            position_.coeffRef(1) = CGAL::to_double(_point.y());
-            theta_ = _theta;
         }
 
         ~Pose() {}
@@ -98,11 +86,6 @@ namespace multibot2_util
             _pose.x = position_.x();
             _pose.y = position_.y();
             _pose.theta = theta_;
-        }
-
-        void toCGALPoint(Kernel::Point_2 &_point) const
-        {
-            _point = Kernel::Point_2(position_.x(), position_.y());
         }
 
         Eigen::Vector2d orientationUnitVec() const { return Eigen::Vector2d(std::cos(theta_), std::sin(theta_)); }

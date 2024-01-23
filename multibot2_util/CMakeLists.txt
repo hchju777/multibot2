@@ -24,16 +24,14 @@ find_package(geometry_msgs REQUIRED)
 find_package(multibot2_msgs REQUIRED)
 
 find_package(Boost REQUIRED COMPONENTS program_options system filesystem)
-find_package(CGAL REQUIRED)
-find_package (Eigen3 3.3 REQUIRED NO_MODULE)
+find_package(Eigen3 3.3 REQUIRED NO_MODULE)
 
 set(EXTERNAL_INCLUDE_DIRS ${Boost_INCLUDE_DIRS} ${Eigen3_INCLUDE_DIRS})
-set(EXTERNAL_LIBS ${Boost_LIBRARIES} ${CGAL_LIBRARIES} ${Eigen3_LIBS})
+set(EXTERNAL_LIBS ${Boost_LIBRARIES} ${Eigen3_LIBS})
 
 ################################################################################
 # Build
 ################################################################################
-include_directories( ${YAML_CPP_INCUDE_DIRS})
 include_directories( ${Boost_INCLUDE_DIRS} )
 include_directories( ${Eigen3_INCLUDE_DIRS} )
 
@@ -43,10 +41,10 @@ include_directories(
 )
 
 set(DEPENDENCIES
-    "dwb_critics"
-    "tf2"
-    "geometry_msgs"
-    "multibot2_msgs"
+    dwb_critics
+    tf2
+    geometry_msgs
+    multibot2_msgs
 )
 
 set(LIBRARY_NAME "multibot2_util")
@@ -63,26 +61,28 @@ target_link_libraries(${LIBRARY_NAME}
 target_include_directories(${LIBRARY_NAME}
   PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-    $<INSTALL_INTERFACE:include>)
+    $<INSTALL_INTERFACE:include>
+    ${dwb_critics_INCLUDE_DIRS}
+    ${tf2_INCLUDE_DIRS}
+    ${geometry_msgs_INCLUDE_DIRS}
+  )
 
+ament_target_dependencies(${LIBRARY_NAME}  ${DEPENDENCIES})
+ament_export_dependencies(${DEPENDENCIES})
 ament_export_targets(${LIBRARY_NAME} HAS_LIBRARY_TARGET)
-
-ament_target_dependencies(${LIBRARY_NAME}
-  ${DEPENDENCIES}
-)
 
 ################################################################################
 # Install
 ################################################################################
-install(DIRECTORY include/multibot2_util
-  DESTINATION include
+install(DIRECTORY include/multibot2_util/
+  DESTINATION include/multibot2_util/
 )
 
-install(TARGETS
-  ${LIBRARY_NAME}
+install(
+  TARGETS ${LIBRARY_NAME}
   EXPORT ${LIBRARY_NAME}
-  ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib
+  ARCHIVE DESTINATION lib
   RUNTIME DESTINATION bin
   INCLUDES DESTINATION include
 )
@@ -93,7 +93,6 @@ install(TARGETS
 
 ament_export_include_directories(include)
 ament_export_libraries(${LIBRARY_NAME})
-ament_export_dependencies(${DEPENDENCIES})
 
 ################################################################################
 # Build test
