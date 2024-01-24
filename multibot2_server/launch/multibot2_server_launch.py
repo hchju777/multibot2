@@ -16,7 +16,7 @@ import yaml
 
 def generate_launch_description():
     # Get the launch directory
-    multibot_server_dir = get_package_share_directory('multibot2_server')
+    multibot2_server_dir = get_package_share_directory('multibot2_server')
 
     # Launch argument setting
     lifecycle_nodes = ['map_server']
@@ -25,7 +25,7 @@ def generate_launch_description():
 
     # rviz
     rviz_config_dir = os.path.join(
-        multibot_server_dir,
+        multibot2_server_dir,
         'rviz',
         'multibot2_server.rviz'
     )
@@ -41,16 +41,16 @@ def generate_launch_description():
 
     # Map server
     map_server_param_path = os.path.join(
-        multibot_server_dir,
+        multibot2_server_dir,
         'maps',
         'map_server_params.yaml'
     )
 
-    with open(os.path.join(multibot_server_dir, 'maps', 'map_server_params.yaml')) as map_server_params:
+    with open(os.path.join(multibot2_server_dir, 'maps', 'map_server_params.yaml')) as map_server_params:
         map_server_params = yaml.load(map_server_params, Loader=yaml.Loader)
         map = map_server_params['map_server']['ros__parameters']['map']
         yaml_filename = os.path.join(
-            multibot_server_dir, 'maps', map, 'map.yaml')
+            multibot2_server_dir, 'maps', map, 'map.yaml')
 
         with open(yaml_filename) as map_params:
             map_params = yaml.load(map_params, Loader=yaml.Loader)
@@ -95,7 +95,7 @@ def generate_launch_description():
     )
 
     # Server Node
-    multibot_server_cmd = Node(
+    multibot2_server_cmd = Node(
         package='multibot2_server',
         executable='server',
         name='server',
@@ -111,6 +111,6 @@ def generate_launch_description():
     ld.add_action(world_map_cmd)
     ld.add_action(start_lifecycle_manager_cmd)
 
-    ld.add_action(multibot_server_cmd)
+    ld.add_action(multibot2_server_cmd)
 
     return ld
