@@ -267,6 +267,12 @@ namespace multibot2_server
             QString lin_vel_qstring = QString::number(std::round(activatedRobotLinVel_ * 100.0) / 100.0);
             QString ang_vel_qstring = QString::number(std::round(activatedRobotAngVel_ * 100.0) / 100.0);
 
+            auto goal = instance_manager_->getRobot(activatedRobot_).robot_.goal();
+
+            ui_->doubleSpinBox_goalX->setValue(goal.x());
+            ui_->doubleSpinBox_goalY->setValue(goal.y());
+            ui_->doubleSpinBox_goalYaw->setValue(goal.theta());
+
             ui_->label_Linear_Velocity->setText(lin_vel_qstring);
             ui_->label_Angular_Velocity->setText(ang_vel_qstring);
         }
@@ -542,6 +548,18 @@ namespace multibot2_server
         _response->is_complete = true;
     }
 
+    void Panel::rviz_initialpose_callback(const geometry_msgs::msg::PoseWithCovarianceStamped::SharedPtr _initialpose_msg)
+    {
+        if (buttons_.contains(activatedRobot_))
+            instance_manager_->initialpose_pub(activatedRobot_, *_initialpose_msg);
+    }
+
+    void Panel::rviz_goal_pose_callback(const geometry_msgs::msg::PoseStamped::SharedPtr _goal_pose_msg)
+    {
+        if (buttons_.contains(activatedRobot_))
+            instance_manager_->goal_pose_pub(activatedRobot_, *_goal_pose_msg);
+    }
+
     void Panel::update()
     {
         update_robot_tab();
@@ -576,7 +594,6 @@ namespace multibot2_server
     {
         if (buttons_.empty())
             return;
-
         visualization_msgs::msg::MarkerArray robotPoseMarkerArray;
         {
             robotPoseMarkerArray.markers.clear();
@@ -706,7 +723,15 @@ namespace multibot2_server
         emergencyStop_ = nh_->create_publisher<std_msgs::msg::Bool>("/server/emergency_stop", qos);
         emergencyStop_->on_activate();
 
-        rviz_poses_pub_ = nh_->create_publisher<visualization_msgs::msg::MarkerArray>("robot_list", qos);
+        rviz_initialpose_sub_ = nh_->create_subscription<geometry_msgs::msg::PoseWithCovarianceStamped>(
+            "/server/initialpose", qos,
+            std::bind(&Panel::rviz_initialpose_callback, this, std::placeholders::_1));
+
+        rviz_goal_pose_sub_ = nh_->create_subscription<geometry_msgs::msg::PoseStamped>(
+            "/server/goal_pose", qos,
+            std::bind(&Panel::rviz_goal_pose_callback, this, std::placeholders::_1));
+
+        rviz_poses_pub_ = nh_->create_publisher<visualization_msgs::msg::MarkerArray>("/server/robot_list", qos);
         rviz_poses_pub_->on_activate();
 
         update_timer_ = nh_->create_wall_timer(

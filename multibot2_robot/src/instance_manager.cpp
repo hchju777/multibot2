@@ -191,6 +191,10 @@ namespace multibot2_robot
             state.pose.y = robot.pose().y();
             state.pose.theta = robot.pose().theta();
 
+            state.goal.x = robot.goal().x();
+            state.goal.y = robot.goal().y();
+            state.pose.theta = robot.goal().theta();
+
             state.lin_vel = robot.cur_vel_x();
             state.ang_vel = robot.cur_vel_theta();
         }

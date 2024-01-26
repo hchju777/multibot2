@@ -103,6 +103,10 @@ namespace multibot2_server
             const std::shared_ptr<PanelUtil::ModeSelection::Request> _request,
             std::shared_ptr<PanelUtil::ModeSelection::Response> _response);
 
+        void rviz_initialpose_callback(const geometry_msgs::msg::PoseWithCovarianceStamped::SharedPtr _initialpose_msg);
+
+        void rviz_goal_pose_callback(const geometry_msgs::msg::PoseStamped::SharedPtr _goal_pose_msg);
+
         void update();
         void update_robot_tab();
         void update_rviz_poseArray();
@@ -118,6 +122,9 @@ namespace multibot2_server
 
         rclcpp_lifecycle::LifecyclePublisher<std_msgs::msg::Bool>::SharedPtr serverScan_;
         rclcpp_lifecycle::LifecyclePublisher<std_msgs::msg::Bool>::SharedPtr emergencyStop_;
+
+        rclcpp::Subscription<geometry_msgs::msg::PoseWithCovarianceStamped>::SharedPtr rviz_initialpose_sub_;
+        rclcpp::Subscription<geometry_msgs::msg::PoseStamped>::SharedPtr rviz_goal_pose_sub_;
 
         rclcpp_lifecycle::LifecyclePublisher<visualization_msgs::msg::MarkerArray>::SharedPtr rviz_poses_pub_;
 

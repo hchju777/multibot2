@@ -14,6 +14,11 @@ namespace multibot2_server
         robot_ros.robot_.pose().x() = _state_msg->pose.x;
         robot_ros.robot_.pose().y() = _state_msg->pose.y;
         robot_ros.robot_.pose().theta() = _state_msg->pose.theta;
+
+        robot_ros.robot_.goal().x() = _state_msg->goal.x;
+        robot_ros.robot_.goal().y() = _state_msg->goal.y;
+        robot_ros.robot_.goal().theta() = _state_msg->goal.theta;
+
         robot_ros.robot_.cur_vel_x() = _state_msg->lin_vel;
         robot_ros.robot_.cur_vel_theta() = _state_msg->ang_vel;
     }
@@ -38,6 +43,12 @@ namespace multibot2_server
             robot_ros.kill_robot_cmd_ = nh_->create_publisher<std_msgs::msg::Bool>(
                 "/" + robotName + "/kill", qos_);
             robot_ros.kill_robot_cmd_->on_activate();
+            robot_ros.initialpose_pub_ = nh_->create_publisher<geometry_msgs::msg::PoseWithCovarianceStamped>(
+                "/" + robotName + "/initialpose", qos_);
+            robot_ros.initialpose_pub_->on_activate();
+            robot_ros.goal_pose_pub_ = nh_->create_publisher<geometry_msgs::msg::PoseStamped>(
+                "/" + robotName + "/goal_pose", qos_);
+            robot_ros.goal_pose_pub_->on_activate();
         }
         robots_.insert(std::make_pair(robotName, robot_ros));
 
@@ -77,6 +88,18 @@ namespace multibot2_server
 
             std::cout << "Changing the Goal of " << _robotName << ": "
                       << robots_[_robotName].robot_.goal() << std::endl;
+
+            geometry_msgs::msg::PoseStamped goal_pose;
+            {
+                goal_pose.pose.position.x = _goal.x;
+                goal_pose.pose.position.y = _goal.y;
+
+                tf2::Quaternion q;
+                q.setRPY(0, 0, _goal.theta);
+                goal_pose.pose.orientation = tf2::toMsg(q);
+            }
+
+            robots_[_robotName].goal_pose_pub_->publish(goal_pose);
         }
     }
 
@@ -161,7 +184,21 @@ namespace multibot2_server
             robots_[_robotName].cmd_vel_pub_->publish(_remote_cmd_vel);
     }
 
-    Instance_Manager::Instance_Manager(nav2_util::LifecycleNode::SharedPtr& _nh)
+    void Instance_Manager::initialpose_pub(
+        const std::string _robotName, const geometry_msgs::msg::PoseWithCovarianceStamped &_initialpose_msg)
+    {
+        if (robots_.contains(_robotName))
+            robots_[_robotName].initialpose_pub_->publish(_initialpose_msg);
+    }
+
+    void Instance_Manager::goal_pose_pub(
+        const std::string _robotName, const geometry_msgs::msg::PoseStamped &_goal_msg)
+    {
+        if (robots_.contains(_robotName))
+            robots_[_robotName].goal_pose_pub_->publish(_goal_msg);
+    }
+
+    Instance_Manager::Instance_Manager(nav2_util::LifecycleNode::SharedPtr &_nh)
         : nh_(_nh)
     {
         robots_.clear();

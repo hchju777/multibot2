@@ -32,6 +32,8 @@ namespace multibot2_server
         rclcpp::Subscription<State>::SharedPtr state_sub_;
         rclcpp_lifecycle::LifecyclePublisher<geometry_msgs::msg::Twist>::SharedPtr cmd_vel_pub_;
         rclcpp_lifecycle::LifecyclePublisher<std_msgs::msg::Bool>::SharedPtr kill_robot_cmd_;
+        rclcpp_lifecycle::LifecyclePublisher<geometry_msgs::msg::PoseWithCovarianceStamped>::SharedPtr initialpose_pub_;
+        rclcpp_lifecycle::LifecyclePublisher<geometry_msgs::msg::PoseStamped>::SharedPtr goal_pose_pub_;
         rclcpp::Client<PanelUtil::ModeSelection>::SharedPtr modeFromServer_;
         rclcpp::Service<PanelUtil::ModeSelection>::SharedPtr modeFromRobot_;
     }; // struct Robot
@@ -60,6 +62,8 @@ namespace multibot2_server
         void request_modeChange(const std::string _robotName, const PanelUtil::Mode _mode);
         void request_kill(const std::string _robotName);
         void remote_control(const std::string _robotName, const geometry_msgs::msg::Twist &_remote_cmd_vel);
+        void initialpose_pub(const std::string _robotName, const geometry_msgs::msg::PoseWithCovarianceStamped &_initialpose_msg);
+        void goal_pose_pub(const std::string _robotName, const geometry_msgs::msg::PoseStamped &_goal_msg);
 
     private:
         std::unordered_map<std::string, Robot_ROS> robots_;
