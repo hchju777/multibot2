@@ -1,0 +1,2 @@
+prepend-non-duplicate;GAZEBO_MODEL_PATH;share/multibot2_server/models
+prepend-non-duplicate;GAZEBO_MODEL_PATH;share/multibot2_server/worlds

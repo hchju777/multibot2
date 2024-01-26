@@ -1,0 +1,29 @@
+<?xml version='1.0'?>
+<sdf version='1.7'>
+    <model name='cardboard_box_group'>
+        <pose>0 0 0 0 0 0</pose>
+        <include>
+            <uri>model://cardboard_box</uri>
+            <name>box_1</name>
+            <pose frame="">0.0 0.6 0 0 0 0</pose>
+        </include>
+
+        <include>
+            <uri>model://cardboard_box</uri>
+            <name>box_2</name>
+            <pose frame="">0.0 0.2 0 0 0 0</pose>
+        </include>
+
+        <include>
+            <uri>model://cardboard_box</uri>
+            <name>box_3</name>
+            <pose frame="">0.0 -0.2 0 0 0 0</pose>
+        </include>
+
+        <include>
+            <uri>model://cardboard_box</uri>
+            <name>box_4</name>
+            <pose frame="">0.0 -0.6 0 0 0 0</pose>
+        </include>
+    </model>
+</sdf>

@@ -1,0 +1,4 @@
+std_msgs/Header header
+uint8 motor_enabled
+uint8 motor_stopped
+uint8 estop_pressed

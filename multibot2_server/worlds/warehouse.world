@@ -1,0 +1,407 @@
+<?xml version='1.0' encoding='utf-8'?>
+<sdf version="1.6">
+    <world name="default">
+        <scene>
+            <grid>false</grid>
+            <origin_visual>false</origin_visual>
+        </scene>
+
+        <!--Physics-->
+        <gravity>0 0 -9.8</gravity>
+        <magnetic_field>6e-06 2.3e-05 -4.2e-05</magnetic_field>
+        <atmosphere type='adiabatic'/>
+        <physics default="0" name="default_physics" type="ode">
+            <max_step_size>0.004</max_step_size>
+            <real_time_update_rate>250</real_time_update_rate>
+            <solver>
+                <iterations>20</iterations>
+            </solver>
+        </physics>
+
+        <scene>
+            <ambient>0.4 0.4 0.4 1</ambient>
+            <background>0.7 0.7 0.7 1</background>
+            <shadows>1</shadows>
+        </scene>
+
+        <!--World-->
+        <model name='ground_plane'>
+            <pose frame="">10.0 6.75 0 0 0 0</pose>
+            <static>1</static>
+            <link name='link'>
+                <collision name='collision'>
+                    <geometry>
+                        <plane>
+                            <normal>0 0 1</normal>
+                            <size>20 13.5</size>
+                        </plane>
+                    </geometry>
+                    <surface>
+                        <friction>
+                            <ode>
+                                <mu>100</mu>
+                                <mu2>50</mu2>
+                            </ode>
+                            <torsional>
+                                <ode/>
+                            </torsional>
+                        </friction>
+                        <contact>
+                            <ode/>
+                        </contact>
+                        <bounce/>
+                    </surface>
+                    <max_contacts>10</max_contacts>
+                </collision>
+                <visual name='visual'>
+                    <cast_shadows>0</cast_shadows>
+                    <geometry>
+                        <plane>
+                            <normal>0 0 1</normal>
+                            <size>20 13.5</size>
+                        </plane>
+                    </geometry>
+                    <material>
+                        <script>
+                            <uri>file://media/materials/scripts/gazebo.material</uri>
+                            <name>Gazebo/Grey</name>
+                        </script>
+                    </material>
+                </visual>
+                <self_collide>0</self_collide>
+                <enable_wind>0</enable_wind>
+                <kinematic>0</kinematic>
+            </link>
+        </model>
+
+        <model name="warehouse_outer_wall">
+            <include>
+                <uri>model://warehouse_outer_wall</uri>
+            </include>
+            <pose frame="">10.0 6.75 0 0 0 0</pose>
+        </model>
+
+        <model name="warehouse_left_shelf">
+            <include>
+                <uri>model://aws_robomaker_warehouse_ShelfD_01</uri>
+            </include>
+            <pose frame="">16.45 11.5 0 0 0 1.57</pose>
+        </model>
+
+        <model name="warehouse_right_shelf">
+            <include>
+                <uri>model://aws_robomaker_warehouse_ShelfE_01</uri>
+            </include>
+            <pose frame="">19.45 11.5 0 0 0 -1.57</pose>
+        </model>
+
+        <model name="warehouse_left_bucket">
+            <include>
+                <uri>model://aws_robomaker_warehouse_Bucket_01</uri>
+            </include>
+            <pose frame="">16.45 8.75 0 0 0 3.14</pose>
+        </model>
+
+        <model name="warehouse_right_bucket">
+            <include>
+                <uri>model://aws_robomaker_warehouse_Bucket_01</uri>
+            </include>
+            <pose frame="">19.45 8.75 0 0 0 -3.14</pose>
+        </model>
+
+        <model name="trashcan_1">
+            <include>
+                <uri>model://aws_robomaker_warehouse_TrashCanC_01</uri>
+            </include>
+            <pose frame="">3.95 12.3 0 0 0 1.57</pose>
+        </model>
+
+        <model name="trashcan_2">
+            <include>
+                <uri>model://aws_robomaker_warehouse_TrashCanC_01</uri>
+            </include>
+            <pose frame="">4.95 12.3 0 0 0 1.57</pose>
+        </model>
+
+        <model name="trashcan_3">
+            <include>
+                <uri>model://aws_robomaker_warehouse_TrashCanC_01</uri>
+            </include>
+            <pose frame="">5.95 12.3 0 0 0 1.57</pose>
+        </model>
+
+        <model name="middle_cluttering">
+            <include>
+                <uri>model://aws_robomaker_warehouse_ClutteringA_01</uri>
+            </include>
+            <pose frame="">10.0 3.50 0 0 0 0</pose>
+        </model>
+
+        <model name="left_cluttering">
+            <include>
+                <uri>model://aws_robomaker_warehouse_ClutteringC_01</uri>
+            </include>
+            <pose frame="">3.40 3.40 0 0 0 1.57</pose>
+        </model>
+
+        <model name="right_cluttering">
+            <include>
+                <uri>model://aws_robomaker_warehouse_ClutteringC_01</uri>
+            </include>
+            <pose frame="">16.6 3.40 0 0 0 -1.57</pose>
+        </model>
+
+        <model name="left_shelf">
+            <include>
+                <uri>model://aws_robomaker_warehouse_ShelfE_01</uri>
+            </include>
+            <pose frame="">0.74 11.1 0 0 0 -1.57</pose>
+        </model>
+
+        <model name="pallet_box_1">
+            <include>
+                <uri>model://pallet_box_mobile</uri>
+            </include>
+            <pose frame="">1.7 12.4 0 0 0 1.565</pose>
+        </model>
+
+        <model name="pallet_box_2">
+            <include>
+                <uri>model://pallet_box_mobile</uri>
+            </include>
+            <pose frame="">1.725 11.0 0 0 0 -1.575</pose>
+        </model>
+
+        <model name="PalletJackB_1">
+            <include>
+                <uri>model://aws_robomaker_warehouse_PalletJackB_01</uri>
+            </include>
+            <pose frame="">1.7 9.7 0 0 0 1.57</pose>
+        </model>
+
+        <model name="middle_shelf_1">
+            <include>
+                <uri>model://aws_robomaker_warehouse_ShelfD_01</uri>
+            </include>
+            <pose frame="">7.35 11.0 0 0 0 -1.57</pose>
+        </model>
+
+        <model name="middle_shelf_2">
+            <include>
+                <uri>model://aws_robomaker_warehouse_ShelfE_01</uri>
+            </include>
+            <pose frame="">12.2 11.0 0 0 0 1.57</pose>
+        </model>
+
+        <model name="middle_shelf_3">
+            <include>
+                <uri>model://aws_robomaker_warehouse_ShelfE_01</uri>
+            </include>
+            <pose frame="">9.8 12.55 0 0 0 0</pose>
+        </model>
+
+        <model name="upper_middle_cluttering">
+            <include>
+                <uri>model://aws_robomaker_warehouse_ClutteringC_01</uri>
+            </include>
+            <pose frame="">9.8 10.65 0 0 0 1.57</pose>
+        </model>
+
+        <model name="PalletJackB_2">
+            <include>
+                <uri>model://aws_robomaker_warehouse_PalletJackB_01</uri>
+            </include>
+            <pose frame="">9.2 9.5 0 0 0 0</pose>
+        </model>
+
+        <model name="PalletJackB_3">
+            <include>
+                <uri>model://aws_robomaker_warehouse_PalletJackB_01</uri>
+            </include>
+            <pose frame="">10.3 9.27 0 0 0 3.14</pose>
+        </model>
+
+        <model name="PalletJackB_4">
+            <include>
+                <uri>model://aws_robomaker_warehouse_PalletJackB_01</uri>
+            </include>
+            <pose frame="">8.2 9.7 0 0 0 1.57</pose>
+        </model>
+
+        <model name="PalletJackB_5">
+            <include>
+                <uri>model://aws_robomaker_warehouse_PalletJackB_01</uri>
+            </include>
+            <pose frame="">11.4 9.7 0 0 0 1.57</pose>
+        </model>
+
+        <model name="cardboard_boxes_1">
+            <include>
+                <uri>model://cardboard_box_group</uri>
+            </include>
+            <pose frame="">16.45 12.5 0 0 0 0</pose>
+        </model>
+
+        <model name="cardboard_boxes_2">
+            <include>
+                <uri>model://cardboard_box_group</uri>
+            </include>
+            <pose frame="">16.45 12.5 0.3 0 0 0</pose>
+        </model>
+
+        <model name="cardboard_boxes_3">
+            <include>
+                <uri>model://cardboard_box_group</uri>
+            </include>
+            <pose frame="">16.45 10.6 0 0 0 0</pose>
+        </model>
+
+        <model name="cardboard_boxes_4">
+            <include>
+                <uri>model://cardboard_box_group</uri>
+            </include>
+            <pose frame="">16.45 10.6 0.3 0 0 0</pose>
+        </model>
+
+        <model name="cardboard_boxes_5">
+            <include>
+                <uri>model://cardboard_box_group</uri>
+            </include>
+            <pose frame="">19.45 12.5 0 0 0 0</pose>
+        </model>
+
+        <model name="cardboard_boxes_6">
+            <include>
+                <uri>model://cardboard_box_group</uri>
+            </include>
+            <pose frame="">19.45 12.5 0.3 0 0 0</pose>
+        </model>
+
+        <model name="cardboard_boxes_7">
+            <include>
+                <uri>model://cardboard_box_group</uri>
+            </include>
+            <pose frame="">19.45 10.6 0 0 0 0</pose>
+        </model>
+
+        <model name="cardboard_boxes_8">
+            <include>
+                <uri>model://cardboard_box_group</uri>
+            </include>
+            <pose frame="">19.45 10.6 0.3 0 0 0</pose>
+        </model>
+
+        <model name="cardboard_boxes_9">
+            <include>
+                <uri>model://cardboard_box_group</uri>
+            </include>
+            <pose frame="">7.35 12.0 0 0 0 0</pose>
+        </model>
+
+        <model name="cardboard_boxes_10">
+            <include>
+                <uri>model://cardboard_box_group</uri>
+            </include>
+            <pose frame="">7.35 12.0 0.3 0 0 0</pose>
+        </model>
+
+        <model name="cardboard_boxes_11">
+            <include>
+                <uri>model://cardboard_box_group</uri>
+            </include>
+            <pose frame="">7.35 10.1 0 0 0 0</pose>
+        </model>
+
+        <model name="cardboard_boxes_12">
+            <include>
+                <uri>model://cardboard_box_group</uri>
+            </include>
+            <pose frame="">7.35 10.1 0.3 0 0 0</pose>
+        </model>
+
+        <model name="cardboard_boxes_13">
+            <include>
+                <uri>model://cardboard_box_group</uri>
+            </include>
+            <pose frame="">12.2 12.0 0 0 0 0</pose>
+        </model>
+
+        <model name="cardboard_boxes_14">
+            <include>
+                <uri>model://cardboard_box_group</uri>
+            </include>
+            <pose frame="">12.2 12.0 0.3 0 0 0</pose>
+        </model>
+
+        <model name="cardboard_boxes_15">
+            <include>
+                <uri>model://cardboard_box_group</uri>
+            </include>
+            <pose frame="">12.2 10.1 0 0 0 0</pose>
+        </model>
+
+        <model name="cardboard_boxes_16">
+            <include>
+                <uri>model://cardboard_box_group</uri>
+            </include>
+            <pose frame="">12.2 10.1 0.3 0 0 0</pose>
+        </model>
+
+        <model name="cardboard_boxes_17">
+            <include>
+                <uri>model://cardboard_box_group</uri>
+            </include>
+            <pose frame="">0.74 12.1 0 0 0 0</pose>
+        </model>
+
+        <model name="cardboard_boxes_18">
+            <include>
+                <uri>model://cardboard_box_group</uri>
+            </include>
+            <pose frame="">0.74 12.1 0.3 0 0 0</pose>
+        </model>
+
+        <model name="cardboard_boxes_19">
+            <include>
+                <uri>model://cardboard_box_group</uri>
+            </include>
+            <pose frame="">0.74 10.1 0 0 0 0</pose>
+        </model>
+
+        <model name="cardboard_boxes_20">
+            <include>
+                <uri>model://cardboard_box_group</uri>
+            </include>
+            <pose frame="">0.74 10.1 0.3 0 0 0</pose>
+        </model>
+
+        <light name='sun' type='directional'>
+            <cast_shadows>1</cast_shadows>
+            <pose>10.0 6.75 100 0 -0 0</pose>
+            <diffuse>0.8 0.8 0.8 1</diffuse>
+            <specular>0.2 0.2 0.2 1</specular>
+            <attenuation>
+                <range>1000</range>
+                <constant>0.9</constant>
+                <linear>0.01</linear>
+                <quadratic>0.001</quadratic>
+            </attenuation>
+            <direction>-0.5 0.1 -0.9</direction>
+            <spot>
+                <inner_angle>0</inner_angle>
+                <outer_angle>0</outer_angle>
+                <falloff>0</falloff>
+            </spot>
+        </light>
+
+        <!--Screen-->
+        <gui fullscreen='0'>
+            <camera name='user_camera'>
+                <pose>-12.0162 -10.8508 10.8135 -0 0.583643 0.804195</pose>
+                <view_controller>orbit</view_controller>
+                <projection_type>perspective</projection_type>
+            </camera>
+        </gui>
+
+    </world>
+</sdf>
