@@ -54,29 +54,10 @@ set(FAKE_DRIVER_DEPENDENCIES
 )
 
 set(FAKE_DRIVER_EXEC_NAME "fake_driver")
-set(FAKE_DRIVER_LIB_NAME ${FAKE_DRIVER_EXEC_NAME}_core)
-
 file(GLOB FAKE_DRIVER_SOURCES "src/fake_driver/*.cpp")
-list(REMOVE_ITEM FAKE_DRIVER_SOURCES ${PROJECT_SOURCE_DIR}/src/fake_driver/fake_node.cpp)
-add_library(${FAKE_DRIVER_LIB_NAME} SHARED
-  ${FAKE_DRIVER_SOURCES}
-)
+add_executable(${FAKE_DRIVER_EXEC_NAME} ${FAKE_DRIVER_SOURCES})
 
-ament_target_dependencies(${FAKE_DRIVER_LIB_NAME}
-    ${FAKE_DRIVER_DEPENDENCIES}
-)
-
-target_compile_definitions(${FAKE_DRIVER_LIB_NAME}
-  PUBLIC "PLUGINLIB__DISABLE_BOOST_FUNCTIONS"
-)
-
-add_executable(${FAKE_DRIVER_EXEC_NAME}
-    ${PROJECT_SOURCE_DIR}/src/fake_driver/fake_node.cpp
-)
-
-target_link_libraries(${FAKE_DRIVER_EXEC_NAME}
-  ${FAKE_DRIVER_LIB_NAME}
-)
+ament_target_dependencies(${FAKE_DRIVER_EXEC_NAME} ${FAKE_DRIVER_DEPENDENCIES})
 
 # ISR_M2_Node
 set(ISR_M2_NODE_DEPENDENCIES
@@ -89,44 +70,43 @@ set(ISR_M2_NODE_DEPENDENCIES
 )
 
 set(ISR_M2_NODE_EXEC_NAME "isr_m2_node")
-set(ISR_M2_NODE_LIB_NAME ${ISR_M2_NODE_EXEC_NAME}_core)
-
 file(GLOB DRIVER_SOURCES "src/driver/*.cpp")
-list(REMOVE_ITEM DRIVER_SOURCES ${PROJECT_SOURCE_DIR}/src/driver/driver_node.cpp)
-add_library(${ISR_M2_NODE_LIB_NAME} SHARED
-  ${DRIVER_SOURCES}
-)
+add_executable(${ISR_M2_NODE_EXEC_NAME} ${DRIVER_SOURCES})
 
-ament_target_dependencies(${ISR_M2_NODE_LIB_NAME}
-    ${ISR_M2_NODE_DEPENDENCIES}
-)
-
-target_compile_definitions(${ISR_M2_NODE_LIB_NAME}
-  PUBLIC "PLUGINLIB__DISABLE_BOOST_FUNCTIONS"
-)
-
-add_executable(${ISR_M2_NODE_EXEC_NAME}
-    ${PROJECT_SOURCE_DIR}/src/driver/driver_node.cpp
-)
-
-target_link_libraries(${ISR_M2_NODE_EXEC_NAME}
-  ${ISR_M2_NODE_LIB_NAME}
-)
+ament_target_dependencies(${ISR_M2_NODE_EXEC_NAME} ${ISR_M2_NODE_DEPENDENCIES})
 
 ################################################################################
 # Install
 ################################################################################
 # Fake Driver
+install(
+  TARGETS ${FAKE_DRIVER_LIB_NAME}
+  ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib
+  RUNTIME DESTINATION bin
+)
+
 install(TARGETS
   ${FAKE_DRIVER_EXEC_NAME}
   DESTINATION lib/${PROJECT_NAME}
 )
 
+ament_export_libraries(${FAKE_DRIVER_LIB_NAME})
+
 # ISR_M2_Node
+install(
+  TARGETS ${ISR_M2_NODE_LIB_NAME}
+  ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib
+  RUNTIME DESTINATION bin
+)
+
 install(TARGETS
   ${ISR_M2_NODE_EXEC_NAME}
   DESTINATION lib/${PROJECT_NAME}
 )
+
+ament_export_libraries(${ISR_M2_NODE_LIB_NAME})
 
 install(DIRECTORY
   launch

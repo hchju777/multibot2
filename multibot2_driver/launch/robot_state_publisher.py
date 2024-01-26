@@ -25,8 +25,7 @@ def generate_launch_description():
         package='robot_state_publisher',
         executable='robot_state_publisher',
         namespace=namespace,
-        name='joint_state_publisher',
-        output='screen',
+        name='robot_state_publisher',
         parameters=[{'robot_description': Command(['xacro ', xacro, ' robot_name:=', robot_name])},
                     {'frame_prefix': frame_prefix},
                     {'use_sim_time': use_sim_time}]

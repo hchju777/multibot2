@@ -69,8 +69,8 @@ namespace multibot2_util
         }
 
     protected:
-        std::string name_{std::string()};
-        std::string type_{std::string()};
+        std::string name_{std::string("robot")};
+        std::string type_{std::string("DiffDrive")};
 
         Pose pose_;
         Pose goal_;

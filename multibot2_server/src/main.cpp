@@ -1,6 +1,6 @@
 #include <iostream>
 
-#include "multibot2_server/server.h"
+#include "multibot2_server/server_node.h"
 
 int main(int argc, char * argv[])
 {

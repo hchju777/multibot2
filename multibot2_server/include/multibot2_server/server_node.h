@@ -23,9 +23,6 @@ namespace multibot2_server
         typedef std::shared_ptr<MultibotServer> SharedPtr;
 
     public:
-        typedef multibot2_msgs::msg::RobotState RobotState;
-
-    public:
         MultibotServer();
 
         ~MultibotServer();
@@ -47,7 +44,7 @@ namespace multibot2_server
 
         Panel::UniquePtr serverPanel_;
 
-        bool pannel_is_running_{false};
+        bool panel_is_running_{false};
 
     }; // class MultibotServer
 } // namespace multibot2_server

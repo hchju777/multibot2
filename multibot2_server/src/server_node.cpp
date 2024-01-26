@@ -1,4 +1,4 @@
-#include "multibot2_server/server.h"
+#include "multibot2_server/server_node.h"
 
 namespace multibot2_server
 {
@@ -23,14 +23,14 @@ namespace multibot2_server
         serverPanel_->attach(*this);
         serverPanel_->show();
 
-        pannel_is_running_ = true;
+        panel_is_running_ = true;
 
         app.exec();
     }
 
     void MultibotServer::update(const multibot2_util::PanelUtil::Msg &_msg)
     {
-        if (not(pannel_is_running_))
+        if (not(panel_is_running_))
             return;
 
         switch (_msg)
@@ -56,6 +56,6 @@ namespace multibot2_server
 
         instance_manager_ = std::make_shared<Instance_Manager>(nh_);
 
-        pannel_is_running_ = false;
+        panel_is_running_ = false;
     }
 } // namespace multibot2_server

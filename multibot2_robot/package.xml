@@ -1,0 +1,49 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>multibot2_robot</name>
+  <version>0.1.0</version>
+  <description>
+    Multi-robot robot
+  </description>
+  <maintainer email="hchju777@korea.ac.kr">Changju Hwang</maintainer>
+  <license>GNU General Public License v3.0</license>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+  <build_depend>qtbase5-dev</build_depend>
+  <build_depend>qt_build</build_depend>
+
+  <depend>libg2o</depend>
+
+  <depend>costmap_converter</depend>
+  <depend>costmap_converter_msgs</depend>
+  <depend>dwb_critics</depend>
+
+  <depend>rclcpp</depend>
+  <depend>rclpy</depend>
+  <depend>geometry_msgs</depend>
+  <depend>std_msgs</depend>
+  <depend>nav_msgs</depend>
+  <depend>sensor_msgs</depend>
+  <depend>visualization_msgs</depend>
+  <depend>multibot2_msgs</depend>
+  <depend>multibot2_util</depend>
+  <depend>nav2_core</depend>
+  <depend>nav2_costmap_2d</depend>
+  <depend>nav2_msgs</depend>
+  <depend>nav2_util</depend>
+  <depend>libceres-dev</depend>
+  <depend>ompl</depend>
+  <exec_depend>nav2_bringup</exec_depend>
+
+  <exec_depend>ros2launch</exec_depend>
+  <exec_depend>cartographer_ros</exec_depend>
+
+  <exec_depend>libqt5-core</exec_depend>
+  <exec_depend>libqt5-gui</exec_depend>
+  <exec_depend>libqt5-opengl</exec_depend>
+  <exec_depend>libqt5-widgets</exec_depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>

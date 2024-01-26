@@ -31,6 +31,8 @@
 #include <geometry_msgs/msg/twist.hpp>
 #include <visualization_msgs/msg/marker_array.hpp>
 
+using namespace multibot2_util;
+
 namespace Ui
 {
     class ServerPanel;
@@ -43,25 +45,6 @@ namespace multibot2_server
     public:
         typedef std::unique_ptr<Panel> UniquePtr;
         typedef std::shared_ptr<Panel> SharedPtr;
-
-    public:
-        typedef multibot2_util::PanelUtil::Tab Tab;
-        typedef multibot2_util::PanelUtil::Request Request;
-        typedef multibot2_util::PanelUtil::Mode Mode;
-        typedef multibot2_util::PanelUtil::PlanState PlanState;
-        typedef multibot2_util::PanelUtil::Msg Msg;
-
-        typedef multibot2_util::PanelUtil::Connection Connection;
-        typedef multibot2_util::PanelUtil::Disconnection Disconnection;
-        typedef multibot2_util::PanelUtil::ModeSelection ModeSelection;
-
-    public:
-        Panel() {}
-
-        Panel(nav2_util::LifecycleNode::SharedPtr &_nh, Instance_Manager::SharedPtr &_instance_manager,
-              QWidget *_parent = nullptr);
-
-        ~Panel() { delete ui_; }
 
     private:
         Q_OBJECT
@@ -97,75 +80,75 @@ namespace multibot2_server
         void addRobotButton(QString _robotName);
         void deleteRobotButton(QString _robotName);
 
-    protected:
-        void init_ui();
+    public:
+        void setPlanState(PanelUtil::PlanState _planState);
 
+    private:
         std::string getIPAddress();
 
-    protected:
-        void update()
-        {
-            update_robot_tab();
-            update_rviz_poseArray();
-        }
+    private:
+        Ui::ServerPanel *ui_;
+        QTimer *displayTimer_;
 
+    private:
+        void register_robot(
+            const std::shared_ptr<PanelUtil::Connection::Request> _request,
+            std::shared_ptr<PanelUtil::Connection::Response> _response);
+
+        void expire_robot(
+            const std::shared_ptr<PanelUtil::Disconnection::Request> _request,
+            std::shared_ptr<PanelUtil::Disconnection::Response> _response);
+
+        void change_robot_mode(
+            const std::shared_ptr<PanelUtil::ModeSelection::Request> _request,
+            std::shared_ptr<PanelUtil::ModeSelection::Response> _response);
+
+        void update();
         void update_robot_tab();
-
         void update_rviz_poseArray();
 
         visualization_msgs::msg::Marker make_robotPoseMarker(const Robot_ROS &_robot_ros);
 
-    protected:
-        void register_robot(
-            const std::shared_ptr<Connection::Request> _request,
-            std::shared_ptr<Connection::Response> _response);
-
-        void expire_robot(
-            const std::shared_ptr<Disconnection::Request> _request,
-            std::shared_ptr<Disconnection::Response> _response);
-
-        void change_robot_mode(
-            const std::shared_ptr<ModeSelection::Request> _request,
-            std::shared_ptr<ModeSelection::Response> _response);
-
-    protected:
-        Ui::ServerPanel *ui_;
-        QTimer *displayTimer_;
-
-    protected:
+    private:
         nav2_util::LifecycleNode::SharedPtr nh_;
-
         rclcpp::TimerBase::SharedPtr update_timer_;
 
-        rclcpp::Service<Connection>::SharedPtr connection_;
-        rclcpp::Service<Disconnection>::SharedPtr disconnection_;
+        rclcpp::Service<PanelUtil::Connection>::SharedPtr connection_;
+        rclcpp::Service<PanelUtil::Disconnection>::SharedPtr disconnection_;
 
         rclcpp_lifecycle::LifecyclePublisher<std_msgs::msg::Bool>::SharedPtr serverScan_;
         rclcpp_lifecycle::LifecyclePublisher<std_msgs::msg::Bool>::SharedPtr emergencyStop_;
 
         rclcpp_lifecycle::LifecyclePublisher<visualization_msgs::msg::MarkerArray>::SharedPtr rviz_poses_pub_;
 
-    protected:
-        Instance_Manager::SharedPtr instance_manager_;
-
-    protected:
-        std::map<std::string, QPushButton *> buttons_;
+    private:
+        std::unordered_map<std::string, QPushButton *> buttons_;
 
         std::string activatedRobot_;
         std::string inactivatedRobot_;
 
-        PlanState planState_{PlanState::READY};
+        double activatedRobotLinVel_;
+        double activatedRobotAngVel_;
+        geometry_msgs::msg::Pose2D activatedRobotGoal_;
+        PanelUtil::Mode activatedRobotModeState_;
+        PanelUtil::PlanState planState_;
 
-    protected:
-        multibot2_util::PanelUtil::Msg msg_{Msg::NO_REQUEST};
-        std::list<Observer::ObserverInterface<Msg> *> list_observer_;
-
-    protected:
         static constexpr int scrollSpacing_ = 20;
         static constexpr int buttonHeight_ = 50;
         static constexpr int buttonFontSize_ = 13;
         static constexpr int deltaScrollHeight_ = 70;
 
+        PanelUtil::Msg msg_;
+        std::list<Observer::ObserverInterface<PanelUtil::Msg> *> list_observer_;
+
+        std::shared_ptr<Instance_Manager> instance_manager_;
+
+    public:
+        Panel(
+            nav2_util::LifecycleNode::SharedPtr &_nh,
+            std::shared_ptr<Instance_Manager> _instance_manager,
+            QWidget *_parent = nullptr);
+        ~Panel();
     }; // class Panel
 
 } // namespace multibot2_server

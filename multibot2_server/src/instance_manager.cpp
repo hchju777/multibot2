@@ -1,112 +1,54 @@
 #include "multibot2_server/instance_manager.h"
 
+using namespace std::chrono_literals;
+
 namespace multibot2_server
 {
-    Robot_ROS::Robot_ROS(const Robot_ROS &_robot_ros)
+    void Instance_Manager::robotState_callback(const Robot_ROS::State::SharedPtr _state_msg)
     {
-        robot_ = _robot_ros.robot_;
+        auto &robot_ros = robots_[_state_msg->name];
 
-        id_ = _robot_ros.id_;
-        mode_ = _robot_ros.mode_;
+        robot_ros.prior_update_time_ = robot_ros.last_update_time_;
+        robot_ros.last_update_time_ = nh_->now();
 
-        last_update_time_ = _robot_ros.last_update_time_;
-        prior_update_time_ = _robot_ros.prior_update_time_;
-
-        state_sub_ = _robot_ros.state_sub_;
-
-        cmd_vel_pub_ = _robot_ros.cmd_vel_pub_;
-
-        modeFromServer_ = _robot_ros.modeFromServer_;
-        modeFromRobot_ = _robot_ros.modeFromRobot_;
+        robot_ros.robot_.pose().x() = _state_msg->pose.x;
+        robot_ros.robot_.pose().y() = _state_msg->pose.y;
+        robot_ros.robot_.pose().theta() = _state_msg->pose.theta;
+        robot_ros.robot_.cur_vel_x() = _state_msg->lin_vel;
+        robot_ros.robot_.cur_vel_theta() = _state_msg->ang_vel;
     }
 
-    Robot_ROS &Robot_ROS::operator=(const Robot_ROS &_rhs)
+    void Instance_Manager::insertRobot(const Robot_ROS &_robot_ros)
     {
-        if (&_rhs != this)
+        if (robots_.contains(_robot_ros.robot_.name()))
         {
-            robot_ = _rhs.robot_;
-
-            id_ = _rhs.id_;
-            mode_ = _rhs.mode_;
-
-            last_update_time_ = _rhs.last_update_time_;
-            prior_update_time_ = _rhs.prior_update_time_;
-
-            state_sub_ = _rhs.state_sub_;
-
-            cmd_vel_pub_ = _rhs.cmd_vel_pub_;
-
-            modeFromServer_ = _rhs.modeFromServer_;
-            modeFromRobot_ = _rhs.modeFromRobot_;
-        }
-
-        return *this;
-    }
-
-    Instance_Manager::Instance_Manager(nav2_util::LifecycleNode::SharedPtr &_nh)
-        : nh_(_nh)
-    {
-        init_variables();
-
-        RCLCPP_INFO(nh_->get_logger(), "Instance Manager has been initialized");
-    }
-
-    Instance_Manager::Instance_Manager(const Instance_Manager &_instance_manager)
-    {
-        nh_ = _instance_manager.nh_;
-
-        robots_ = _instance_manager.robots_;
-    }
-
-    Instance_Manager::~Instance_Manager()
-    {
-        RCLCPP_INFO(nh_->get_logger(), "Instance Manager has been terminated");
-    }
-
-    Instance_Manager &Instance_Manager::operator=(const Instance_Manager &_rhs)
-    {
-        if (&_rhs != this)
-        {
-            nh_ = _rhs.nh_;
-
-            robots_ = _rhs.robots_;
-        }
-
-        return *this;
-    }
-
-    void Instance_Manager::init_variables()
-    {
-        qos_ = rclcpp::QoS(rclcpp::KeepLast(10));
-
-        std::map<std::string, Robot_ROS> empty_robots;
-        robots_.swap(empty_robots);
-    }
-
-    void Instance_Manager::emplaceRobot(Robot_ROS &_robot_ros)
-    {
-        if (robots_.contains(_robot_ros.robot().name()))
             return;
+        }
 
-        static int32_t robotID = 0;
+        std::string robotName = _robot_ros.robot_.name();
 
-        const std::string &robotName = _robot_ros.robot().name();
-
-        _robot_ros.id() = ++robotID;
-
-        _robot_ros.state_sub() = nh_->create_subscription<Robot_ROS::RobotState>(
-            "/" + robotName + "/state", qos_,
-            std::bind(&Instance_Manager::robotState_callback, this, std::placeholders::_1));
-
-        robots_.emplace(robotName, _robot_ros);
+        Robot_ROS robot_ros = _robot_ros;
+        {
+            robot_ros.state_sub_ = nh_->create_subscription<Robot_ROS::State>(
+                "/" + robotName + "/state", qos_,
+                std::bind(&Instance_Manager::robotState_callback, this, std::placeholders::_1));
+            robot_ros.cmd_vel_pub_ = nh_->create_publisher<geometry_msgs::msg::Twist>(
+                "/" + robotName + "/cmd_vel", qos_);
+            robot_ros.cmd_vel_pub_->on_activate();
+            robot_ros.kill_robot_cmd_ = nh_->create_publisher<std_msgs::msg::Bool>(
+                "/" + robotName + "/kill", qos_);
+            robot_ros.kill_robot_cmd_->on_activate();
+        }
+        robots_.insert(std::make_pair(robotName, robot_ros));
 
         RCLCPP_INFO(nh_->get_logger(), "Instance_Manager::insertRobot()");
         RCLCPP_INFO(nh_->get_logger(), "New Robot " + robotName + " is registered.");
         RCLCPP_INFO(nh_->get_logger(), "Total Robots: " + std::to_string(robots_.size()) + "EA");
-        std::cout << static_cast<const multibot2_util::BaseRobotInfo &>(robots_[robotName].robot()) << std::endl;
+        std::cout << robot_ros.robot_ << std::endl;
     }
 
-    void Instance_Manager::deleteRobot(const std::string _robotName)
+    void Instance_Manager::deleteRobot(
+        const std::string _robotName)
     {
         if (robots_.contains(_robotName))
         {
@@ -117,19 +59,114 @@ namespace multibot2_server
         }
     }
 
-    void Instance_Manager::robotState_callback(const Robot_ROS::RobotState::SharedPtr _state_msg)
+    const Robot_ROS &Instance_Manager::getRobot(const std::string _robotName) const
     {
-        Robot_ROS &robot_ros = robots_[_state_msg->name];
+        const auto &robot_ros = robots_.find(_robotName)->second;
 
-        robot_ros.prior_update_time() = robot_ros.last_update_time();
-        robot_ros.last_update_time() = nh_->now();
+        return robot_ros;
+    }
 
-        robot_ros.robot().pose().x() = _state_msg->pose.x;
-        robot_ros.robot().pose().y() = _state_msg->pose.y;
-        robot_ros.robot().pose().theta() = _state_msg->pose.theta;
+    void Instance_Manager::setGoal(
+        const std::string _robotName, const geometry_msgs::msg::Pose2D _goal)
+    {
+        if (robots_.contains(_robotName))
+        {
+            robots_[_robotName].robot_.goal().x() = _goal.x;
+            robots_[_robotName].robot_.goal().y() = _goal.y;
+            robots_[_robotName].robot_.goal().theta() = _goal.theta;
 
-        robot_ros.robot().cur_vel_x() = _state_msg->lin_vel;
-        robot_ros.robot().cur_vel_theta() = _state_msg->ang_vel;
+            std::cout << "Changing the Goal of " << _robotName << ": "
+                      << robots_[_robotName].robot_.goal() << std::endl;
+        }
+    }
+
+    void Instance_Manager::setMode(
+        const std::string _robotName, const PanelUtil::Mode _mode)
+    {
+        if (not(robots_.contains(_robotName)))
+            return;
+
+        robots_[_robotName].mode_ = _mode;
+
+        if (_mode == PanelUtil::Mode::REMOTE)
+        {
+            geometry_msgs::msg::Twist stop_cmd_vel;
+            {
+                stop_cmd_vel.linear.x = 0.0;
+                stop_cmd_vel.angular.z = 0.0;
+            }
+            robots_[_robotName].cmd_vel_pub_->publish(stop_cmd_vel);
+        }
+    }
+
+    void Instance_Manager::request_modeChange(
+        const std::string _robotName, const PanelUtil::Mode _mode)
+    {
+        if (not(robots_.contains(_robotName)))
+            return;
+
+        auto &robot_ros = robots_[_robotName];
+
+        while (!robot_ros.modeFromServer_->wait_for_service(1s))
+        {
+            if (!rclcpp::ok())
+            {
+                RCLCPP_ERROR(nh_->get_logger(), "Interrupted while waiting for the service.");
+                return;
+            }
+            RCLCPP_ERROR(nh_->get_logger(), "ModeChange not available, waiting again...");
+        }
+
+        auto request = std::make_shared<PanelUtil::ModeSelection::Request>();
+
+        request->name = _robotName;
+
+        if (_mode == PanelUtil::Mode::REMOTE)
+            request->is_remote = true;
+        else if (_mode == PanelUtil::Mode::MANUAL)
+            request->is_remote = false;
+        else
+        {
+        }
+
+        auto response_received_callback = [this](rclcpp::Client<PanelUtil::ModeSelection>::SharedFuture _future)
+        {
+            auto response = _future.get();
+            return;
+        };
+
+        auto future_result =
+            robot_ros.modeFromServer_->async_send_request(request, response_received_callback);
+
+        if (future_result.get()->is_complete)
+            robot_ros.mode_ = _mode;
+
+        return;
+    }
+
+    void Instance_Manager::request_kill(const std::string _robotName)
+    {
+        if (not(robots_.contains(_robotName)))
+            return;
+
+        std_msgs::msg::Bool killActivated;
+        killActivated.data = true;
+        robots_[_robotName].kill_robot_cmd_->publish(killActivated);
+    }
+
+    void Instance_Manager::remote_control(
+        const std::string _robotName, const geometry_msgs::msg::Twist &_remote_cmd_vel)
+    {
+        if (robots_.contains(_robotName))
+            robots_[_robotName].cmd_vel_pub_->publish(_remote_cmd_vel);
+    }
+
+    Instance_Manager::Instance_Manager(nav2_util::LifecycleNode::SharedPtr& _nh)
+        : nh_(_nh)
+    {
+        robots_.clear();
+
+        std::cout << "Instance Manager has been initialzied" << std::endl;
     }
 
 } // namespace multibot2_server
