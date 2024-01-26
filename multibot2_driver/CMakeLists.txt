@@ -45,12 +45,12 @@ include_directories(
 
 # Fake Driver
 set(FAKE_DRIVER_DEPENDENCIES
-  "rclcpp"
-  "rclpy"
-  "geometry_msgs"
-  "nav_msgs"
-  "sensor_msgs"
-  "tf2_msgs"
+  rclcpp
+  rclpy
+  geometry_msgs
+  nav_msgs
+  sensor_msgs
+  tf2_msgs
 )
 
 set(FAKE_DRIVER_EXEC_NAME "fake_driver")
@@ -61,12 +61,12 @@ ament_target_dependencies(${FAKE_DRIVER_EXEC_NAME} ${FAKE_DRIVER_DEPENDENCIES})
 
 # ISR_M2_Node
 set(ISR_M2_NODE_DEPENDENCIES
-  "rclcpp"
-  "tf2"
-  "tf2_ros"
-  "geometry_msgs"
-  "nav_msgs"
-  "multibot2_msgs"
+  rclcpp
+  tf2
+  tf2_ros
+  geometry_msgs
+  nav_msgs
+  multibot2_msgs
 )
 
 set(ISR_M2_NODE_EXEC_NAME "isr_m2_node")
