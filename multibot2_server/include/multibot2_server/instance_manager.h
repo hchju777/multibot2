@@ -8,6 +8,8 @@
 #include <nav2_costmap_2d/costmap_2d_ros.hpp>
 #include <nav2_costmap_2d/cost_values.hpp>
 
+#include "costmap_converter/costmap_to_polygons.h"
+
 #include "multibot2_server/robot.h"
 
 #include "multibot2_util/panel_util.h"
@@ -47,10 +49,17 @@ namespace multibot2_server
         typedef std::unique_ptr<Instance_Manager> UniquePtr;
         typedef std::shared_ptr<Instance_Manager> SharedPtr;
 
-    private:
+    public:
+        std::map<std::string, Robot_ROS> &robots() { return robots_; }
+        const std::map<std::string, Robot_ROS> &robots() const { return robots_; }
+
+        costmap_converter::PolygonContainerConstPtr &static_polygons() { return static_polygons_; }
+        const costmap_converter::PolygonContainerConstPtr &static_polygons() const { return static_polygons_; }
+
+    protected:
         void robotState_callback(const Robot_ROS::State::SharedPtr _state_msg);
 
-    private:
+    protected:
         nav2_util::LifecycleNode::SharedPtr nh_;
         rclcpp::QoS qos_ = rclcpp::QoS(rclcpp::KeepLast(10));
 
@@ -69,13 +78,15 @@ namespace multibot2_server
         void goal_pose_pub(const std::string _robotName, const geometry_msgs::msg::PoseStamped &_goal_msg);
 
     protected:
-        std::unordered_map<std::string, Robot_ROS> robots_;
+        std::map<std::string, Robot_ROS> robots_;
 
         std::shared_ptr<nav2_costmap_2d::Costmap2DROS> global_costmap_ros_;
         std::unique_ptr<nav2_util::NodeThread> global_costmap_thread_;
 
+        costmap_converter::PolygonContainerConstPtr static_polygons_;
+
     public:
-        Instance_Manager(nav2_util::LifecycleNode::SharedPtr& _nh);
+        Instance_Manager(nav2_util::LifecycleNode::SharedPtr &_nh);
         ~Instance_Manager() {}
     }; // class Instance_Manager
 } // namespace multibot2_server

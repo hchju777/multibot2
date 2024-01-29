@@ -32,6 +32,7 @@ ENDIF()
 # Find dependencies
 ################################################################################
 find_package(ament_cmake REQUIRED)
+find_package(costmap_converter REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(rclpy REQUIRED)
 find_package(multibot2_msgs REQUIRED)
@@ -57,6 +58,7 @@ include_directories(
 # server
 set(SERVER_DEPENDENCIES
   rclcpp
+  costmap_converter
   nav_msgs
   std_msgs
   geometry_msgs
@@ -71,9 +73,11 @@ set(library_name ${SERVER_EXEC_NAME}_core)
 
 file(GLOB SERVER_SRC_FILES "src/*.cpp")
 list(REMOVE_ITEM SERVER_SRC_FILES ${PROJECT_SOURCE_DIR}/src/main.cpp)
+file(GLOB SUBGOAL_GENERATOR_SRC_FILES "src/subgoal_generator/*.cpp")
 set(PANEL_HEADER_FILE "include/multibot2_server/server_panel.h")
 add_library(${library_name} SHARED
   ${SERVER_SRC_FILES}
+  ${SUBGOAL_GENERATOR_SRC_FILES}
   ${PANEL_HEADER_FILE}
 )
 

@@ -202,12 +202,18 @@ namespace multibot2_server
         : nh_(_nh)
     {
         robots_.clear();
-        
+
         global_costmap_ros_ = std::make_shared<nav2_costmap_2d::Costmap2DROS>(
             "global_costmap", std::string{nh_->get_namespace()}, "global_costmap");
         global_costmap_thread_ = std::make_unique<nav2_util::NodeThread>(global_costmap_ros_);
         global_costmap_ros_->configure();
         global_costmap_ros_->activate();
+
+        std::shared_ptr<costmap_converter::CostmapToPolygonsDBSMCCH> costmap_converter = std::make_shared<costmap_converter::CostmapToPolygonsDBSMCCH>();
+        costmap_converter->setCostmap2D(global_costmap_ros_->getCostmap());
+        costmap_converter->compute();
+        
+        static_polygons_ = costmap_converter->getPolygons();
 
         std::cout << "Instance Manager has been initialzied" << std::endl;
     }

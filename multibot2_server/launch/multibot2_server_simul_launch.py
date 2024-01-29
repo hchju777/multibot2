@@ -127,10 +127,20 @@ def generate_launch_description():
     )
 
     # Server Node
+    fake_map_to_base = Node(
+        package='tf2_ros',
+        executable='static_transform_publisher',
+        namespace='',
+        output='screen',
+        arguments=['0','0','0','0','0','0',
+                   'map', 'server/base_link']
+    )
+    
     global_costmap_Config = RewrittenYaml(
         source_file = os.path.join(multibot2_server_dir, 'params', 'global_costmap.yaml'),
         root_key = '',
         param_rewrites={
+            'robot_base_frame': 'server/base_link',
             'use_sim_time': use_sim_time
         },
         convert_types=True
@@ -163,6 +173,7 @@ def generate_launch_description():
     ld.add_action(start_gazebo_server_cmd)
     ld.add_action(start_gazebo_client_cmd)
 
+    ld.add_action(fake_map_to_base)
     ld.add_action(multibot2_server_cmd)
 
     return ld
