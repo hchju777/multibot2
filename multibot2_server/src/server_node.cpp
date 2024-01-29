@@ -1,11 +1,16 @@
 #include "multibot2_server/server_node.h"
 
+using namespace std::chrono_literals;
+
 namespace multibot2_server
 {
     MultibotServer::MultibotServer()
         : nav2_util::LifecycleNode("server", "", true)
     {
         init_variables();
+
+        subgoal_update_timer_ = nh_->create_wall_timer(
+            50ms, std::bind(&MultibotServer::generate_subgoals, this));
 
         RCLCPP_INFO(this->get_logger(), "MultibotServer has been initialized");
     }
@@ -57,5 +62,23 @@ namespace multibot2_server
         instance_manager_ = std::make_shared<Instance_Manager>(nh_);
 
         panel_is_running_ = false;
+    }
+
+    void MultibotServer::generate_subgoals()
+    {
+        SubgoalGenerator::DynamicGraph::UniquePtr dynamic_graph = std::make_unique<SubgoalGenerator::DynamicGraph>();
+
+        std::map<std::string, Robot> robots;
+        for (const auto &robot_rosPair : instance_manager_->robots())
+        {
+            const Robot &robot = robot_rosPair.second.robot_;
+
+            robots.emplace(robot.name(), robot);
+        }
+
+        dynamic_graph->addVertices(robots);
+        dynamic_graph->print();
+
+        // dynamic_graph_->addVertices()
     }
 } // namespace multibot2_server

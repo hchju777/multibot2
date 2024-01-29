@@ -7,6 +7,7 @@
 #include <nav2_util/lifecycle_node.hpp>
 
 #include "multibot2_server/instance_manager.h"
+#include "multibot2_server/subgoal_generator/dynamic_graph.h"
 #include "multibot2_server/server_panel.h"
 
 #include "multibot2_util/panel_util.h"
@@ -37,7 +38,11 @@ namespace multibot2_server
         void init_variables();
 
     protected:
+        void generate_subgoals();
+
+    protected:
         nav2_util::LifecycleNode::SharedPtr nh_;
+        rclcpp::TimerBase::SharedPtr subgoal_update_timer_;
 
     protected:
         Instance_Manager::SharedPtr instance_manager_;
