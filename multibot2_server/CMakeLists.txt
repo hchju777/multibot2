@@ -45,7 +45,7 @@ find_package(visualization_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
 
 find_package(gazebo_ros REQUIRED)
-find_package(Qt5 REQUIRED COMPONENTS Core Gui Widgets)
+find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets)
 find_package(CGAL REQUIRED)
 
 ################################################################################
@@ -65,7 +65,7 @@ set(SERVER_DEPENDENCIES
   visualization_msgs
   multibot2_msgs
   multibot2_util
-  Qt5
+  Qt6
 )
 
 set(SERVER_EXEC_NAME "server")
@@ -81,11 +81,11 @@ add_library(${library_name} SHARED
   ${PANEL_HEADER_FILE}
 )
 
-set(EXTERNAL_LIBS ${CGAL_LIBRARIES} Qt5::Widgets)
+set(EXTERNAL_LIBS ${CGAL_LIBRARIES} Qt6::Widgets)
 
 target_include_directories(${library_name} PUBLIC
-  ${Qt5Core_INCLUDE_DIRS}
-  ${Qt5Widgets_INCLUDE_DIRS}
+  ${Qt6Core_INCLUDE_DIRS}
+  ${Qt6Widgets_INCLUDE_DIRS}
   ${OGRE_INCLUDE_DIRS}
 )
 
@@ -136,7 +136,7 @@ ament_environment_hooks("${CMAKE_CURRENT_SOURCE_DIR}/env-hooks/multibot2_server.
 
 ament_export_dependencies(ament_cmake)
 ament_export_dependencies(gazebo_ros)
-ament_export_dependencies(Qt5)
+ament_export_dependencies(Qt6)
 
 ament_export_libraries(${library_name})
 
