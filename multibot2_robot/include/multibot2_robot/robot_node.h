@@ -47,5 +47,6 @@ namespace multibot2_robot
         Panel::SharedPtr robot_panel_;
 
         bool panel_is_running_{false};
+        double goal_tolerance_{0.25};
     }; // class MultibotRobot
 } // namespace multibot2_robot

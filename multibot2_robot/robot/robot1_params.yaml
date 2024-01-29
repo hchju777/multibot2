@@ -17,6 +17,8 @@
 
       radius: 0.7
 
+      goal_tolerance: 0.25
+
       velocity_profile:
         max_vel_x: 0.3
         max_vel_theta: 0.2

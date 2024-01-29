@@ -115,6 +115,8 @@ def generate_launch_description():
         root_key = robot_params['name'],
         param_rewrites={
             'robot_base_frame': robot_params['name'] + '/' + robot_params['odometry']['child_frame_id'],
+            'robot_radius': str(robot_params['radius']),
+            'inflation_radius': str(robot_params['radius']),
             'use_sim_time': str(use_sim_time)
         },
         convert_types=True
@@ -127,6 +129,8 @@ def generate_launch_description():
             'global_frame':     robot_params['name'] + '/' + robot_params['odometry']['frame_id'],
             'robot_base_frame': robot_params['name'] + '/' + robot_params['odometry']['child_frame_id'],
             'topic':             '/'+ robot_params['name'] + '/' + robot_params['laser']['scan_topic'],
+            'robot_radius': str(robot_params['radius']),
+            'inflation_radius': str(robot_params['radius']),
             'use_sim_time': str(use_sim_time)
         },
         convert_types=True
@@ -137,7 +141,13 @@ def generate_launch_description():
         root_key = robot_params['name'],
         param_rewrites={
             'odom_topic': '/' + robot_params['name'] + '/' + robot_params['odometry']['topic'],
-            'map_frame': robot_params['name'] + '/' + robot_params['odometry']['frame_id']
+            'map_frame': robot_params['name'] + '/' + robot_params['odometry']['frame_id'],
+            'footprint_model.radius': str(robot_params['radius']),
+            'inflation_dist': str(robot_params['radius']),
+            'max_vel_x': str(robot_params['velocity_profile']['max_vel_x']),
+            'max_vel_theta': str(robot_params['velocity_profile']['max_vel_theta']),
+            'acc_lim_x': str(robot_params['velocity_profile']['acc_lim_x']),
+            'acc_lim_theta': str(robot_params['velocity_profile']['acc_lim_theta'])
         },
         convert_types=True
     )
