@@ -1,0 +1,4 @@
+/**:
+  ros__parameters:
+    server:
+      communication_range: 4.0

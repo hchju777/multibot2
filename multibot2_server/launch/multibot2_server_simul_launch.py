@@ -152,7 +152,8 @@ def generate_launch_description():
         name='server',
         output='screen',
         parameters=[
-            global_costmap_Config
+            global_costmap_Config,
+            os.path.join(multibot2_server_dir, 'params', 'server_params.yaml')
         ]
     )
 

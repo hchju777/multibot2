@@ -11,6 +11,7 @@
 #include "costmap_converter/costmap_to_polygons.h"
 
 #include "multibot2_server/robot.h"
+#include "multibot2_server/global_planner/navfn_planner.hpp"
 
 #include "multibot2_util/panel_util.h"
 
@@ -41,7 +42,7 @@ namespace multibot2_server
         rclcpp_lifecycle::LifecyclePublisher<geometry_msgs::msg::PoseStamped>::SharedPtr goal_pose_pub_;
         rclcpp::Client<PanelUtil::ModeSelection>::SharedPtr modeFromServer_;
         rclcpp::Service<PanelUtil::ModeSelection>::SharedPtr modeFromRobot_;
-    }; // struct Robot
+    }; // struct Robot_ROS
 
     class Instance_Manager
     {
@@ -50,32 +51,55 @@ namespace multibot2_server
         typedef std::shared_ptr<Instance_Manager> SharedPtr;
 
     public:
+        Instance_Manager(nav2_util::LifecycleNode::SharedPtr &_nh);
+
+        ~Instance_Manager() {}
+
+    public:
         std::map<std::string, Robot_ROS> &robots() { return robots_; }
         const std::map<std::string, Robot_ROS> &robots() const { return robots_; }
 
         costmap_converter::PolygonContainerConstPtr &static_polygons() { return static_polygons_; }
         const costmap_converter::PolygonContainerConstPtr &static_polygons() const { return static_polygons_; }
 
-    protected:
-        void robotState_callback(const Robot_ROS::State::SharedPtr _state_msg);
+    public:
+        void init_variables();
 
-    protected:
-        nav2_util::LifecycleNode::SharedPtr nh_;
-        rclcpp::QoS qos_ = rclcpp::QoS(rclcpp::KeepLast(10));
+        void init_parameters();
+
+        void init_global_planner();
 
     public:
         void insertRobot(const Robot_ROS &_robot);
+
         void deleteRobot(const std::string _robotName);
 
         const Robot_ROS &getRobot(const std::string _robotName) const;
 
         void setGoal(const std::string _robotName, const geometry_msgs::msg::Pose2D _goal);
+
         void setMode(const std::string _robotName, const PanelUtil::Mode _mode);
+
         void request_modeChange(const std::string _robotName, const PanelUtil::Mode _mode);
+
         void request_kill(const std::string _robotName);
+
         void remote_control(const std::string _robotName, const geometry_msgs::msg::Twist &_remote_cmd_vel);
+
         void initialpose_pub(const std::string _robotName, const geometry_msgs::msg::PoseWithCovarianceStamped &_initialpose_msg);
+
         void goal_pose_pub(const std::string _robotName, const geometry_msgs::msg::PoseStamped &_goal_msg);
+
+    protected:
+        void convert_map_to_polygons();
+
+        void robotState_callback(const Robot_ROS::State::SharedPtr _state_msg);
+
+        void update_neighbors();
+
+    protected:
+        nav2_util::LifecycleNode::SharedPtr nh_;
+        rclcpp::TimerBase::SharedPtr update_timer_;
 
     protected:
         std::map<std::string, Robot_ROS> robots_;
@@ -85,8 +109,8 @@ namespace multibot2_server
 
         costmap_converter::PolygonContainerConstPtr static_polygons_;
 
-    public:
-        Instance_Manager(nav2_util::LifecycleNode::SharedPtr &_nh);
-        ~Instance_Manager() {}
+        std::shared_ptr<nav2_navfn_planner::NavfnPlanner> navfn_global_planner_;
+        double communication_range_{4.0};
+
     }; // class Instance_Manager
 } // namespace multibot2_server
