@@ -127,11 +127,23 @@ def generate_launch_description():
     )
 
     # Server Node
+    global_costmap_Config = RewrittenYaml(
+        source_file = os.path.join(multibot2_server_dir, 'params', 'global_costmap.yaml'),
+        root_key = '',
+        param_rewrites={
+            'use_sim_time': use_sim_time
+        },
+        convert_types=True
+    )
+    
     multibot2_server_cmd = Node(
         package='multibot2_server',
         executable='server',
         name='server',
-        output='screen'
+        output='screen',
+        parameters=[
+            global_costmap_Config
+        ]
     )
 
     # Create the launch description and populate

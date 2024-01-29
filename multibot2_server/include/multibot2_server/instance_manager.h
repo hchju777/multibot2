@@ -5,6 +5,9 @@
 
 #include <nav2_util/lifecycle_node.hpp>
 
+#include <nav2_costmap_2d/costmap_2d_ros.hpp>
+#include <nav2_costmap_2d/cost_values.hpp>
+
 #include "multibot2_server/robot.h"
 
 #include "multibot2_util/panel_util.h"
@@ -65,8 +68,11 @@ namespace multibot2_server
         void initialpose_pub(const std::string _robotName, const geometry_msgs::msg::PoseWithCovarianceStamped &_initialpose_msg);
         void goal_pose_pub(const std::string _robotName, const geometry_msgs::msg::PoseStamped &_goal_msg);
 
-    private:
+    protected:
         std::unordered_map<std::string, Robot_ROS> robots_;
+
+        std::shared_ptr<nav2_costmap_2d::Costmap2DROS> global_costmap_ros_;
+        std::unique_ptr<nav2_util::NodeThread> global_costmap_thread_;
 
     public:
         Instance_Manager(nav2_util::LifecycleNode::SharedPtr& _nh);

@@ -121,6 +121,7 @@ install(DIRECTORY
   launch
   maps
   models
+  params
   rviz
   ui
   worlds
