@@ -193,7 +193,7 @@ namespace multibot2_robot
 
             state.goal.x = robot.goal().x();
             state.goal.y = robot.goal().y();
-            state.pose.theta = robot.goal().theta();
+            state.goal.theta = robot.goal().theta();
 
             state.lin_vel = robot.cur_vel_x();
             state.ang_vel = robot.cur_vel_theta();
@@ -202,7 +202,7 @@ namespace multibot2_robot
         robot_ros_.state_pub()->publish(state);
     }
 
-    void Instance_Manager::odom_callback(const nav_msgs::msg::Odometry::SharedPtr _odom_msg)
+     void Instance_Manager::odom_callback(const nav_msgs::msg::Odometry::SharedPtr _odom_msg)
     {
         if (robot_ros_.mode() == Robot_ROS::Mode::MANUAL)
             return;

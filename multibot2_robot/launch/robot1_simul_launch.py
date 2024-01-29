@@ -110,22 +110,24 @@ def generate_launch_description():
     )
 
     # Robot Node
+    global_costmap_Config = RewrittenYaml(
+        source_file = os.path.join(multibot2_robot_dir, 'params', 'global_costmap.yaml'),
+        root_key = robot_params['name'],
+        param_rewrites={
+            'robot_base_frame': robot_params['name'] + '/' + robot_params['odometry']['child_frame_id'],
+            'use_sim_time': str(use_sim_time)
+        },
+        convert_types=True
+    )
+    
     local_costmap_Config = RewrittenYaml(
         source_file = os.path.join(multibot2_robot_dir, 'params', 'local_costmap.yaml'),
         root_key = robot_params['name'],
         param_rewrites={
             'global_frame':     robot_params['name'] + '/' + robot_params['odometry']['frame_id'],
             'robot_base_frame': robot_params['name'] + '/' + robot_params['odometry']['child_frame_id'],
-            'topic':             '/'+ robot_params['name'] + '/' + robot_params['laser']['scan_topic']
-        },
-        convert_types=True
-    )
-
-    global_costmap_Config = RewrittenYaml(
-        source_file = os.path.join(multibot2_robot_dir, 'params', 'global_costmap.yaml'),
-        root_key = robot_params['name'],
-        param_rewrites={
-            'robot_base_frame': robot_params['name'] + '/' + robot_params['odometry']['child_frame_id']
+            'topic':             '/'+ robot_params['name'] + '/' + robot_params['laser']['scan_topic'],
+            'use_sim_time': str(use_sim_time)
         },
         convert_types=True
     )
