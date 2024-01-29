@@ -24,7 +24,7 @@ namespace multibot2_robot
 			"/server/disconnection");
 
 		serverScan_ = nh_->create_subscription<std_msgs::msg::Bool>(
-			"/server/scan", qos,
+			"/server/server_scan", qos,
 			std::bind(&Panel::respond_to_serverScan, this, std::placeholders::_1));
 
 		emergencyStop_ = nh_->create_subscription<std_msgs::msg::Bool>(
