@@ -55,6 +55,9 @@ namespace multibot2_server::SubgoalGenerator
         typedef std::shared_ptr<BufferedVoronoiDiagram> SharedPtr;
 
     public:
+        typedef std::pair<Point_2, CGAL::Polygon_with_holes_2<Kernel>> VoronoiCell;
+
+    public:
         BufferedVoronoiDiagram() {}
 
         BufferedVoronoiDiagram(const std::vector<Site_2> &_points, const CGAL::Polygon_with_holes_2<Kernel> &_map_poly);
@@ -71,6 +74,8 @@ namespace multibot2_server::SubgoalGenerator
         ~BufferedVoronoiDiagram() { vd_.clear(); }
 
     public:
+        bool get_polygon(const Point_2 &_point, CGAL::Polygon_2<Kernel> &_poly);
+
         bool get_polygon(const Point_2 &_point, CGAL::Polygon_with_holes_2<Kernel> &_poly);
 
         bool get_raw_voronoi_polygon(const Point_2 &_point, CGAL::Polygon_2<Kernel> &_poly);

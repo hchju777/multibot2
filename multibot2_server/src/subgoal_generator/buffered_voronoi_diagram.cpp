@@ -22,6 +22,21 @@ namespace multibot2_server::SubgoalGenerator
             vd_.insert(point);
     }
 
+    bool BufferedVoronoiDiagram::get_polygon(const Point_2 &_point, CGAL::Polygon_2<Kernel> &_poly)
+    {
+        CGAL::Polygon_2<Kernel> vn_poly;
+        if (not(get_raw_voronoi_polygon(_point, vn_poly)))
+            return false;
+
+        std::list<CGAL::Polygon_with_holes_2<Kernel>> cropped_vn_poly;
+        CGAL::intersection(vn_poly, box_poly_, std::back_insert_iterator(cropped_vn_poly));
+
+        CGAL::Polygon_with_holes_2<Kernel> &poly_w_holes = cropped_vn_poly.front();
+        _poly = poly_w_holes.outer_boundary();
+
+        return true;
+    }
+
     bool BufferedVoronoiDiagram::get_polygon(const Point_2 &_point, CGAL::Polygon_with_holes_2<Kernel> &_poly)
     {
         CGAL::Polygon_2<Kernel> vn_poly;
