@@ -62,11 +62,11 @@ def generate_launch_description():
     # Map server
     map_server_param_path = os.path.join(
         multibot2_server_dir,
-        'maps',
+        'params',
         'map_server_params.yaml'
     )
 
-    with open(os.path.join(multibot2_server_dir, 'params', 'map_server_params.yaml')) as map_server_params:
+    with open(map_server_param_path) as map_server_params:
         map_server_params = yaml.load(map_server_params, Loader=yaml.Loader)
         map = map_server_params['map_server']['ros__parameters']['map']
         yaml_filename = os.path.join(
