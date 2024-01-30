@@ -51,13 +51,13 @@ namespace multibot2_util
         inline double &cur_vel_theta() { return cur_vel_theta_; }
         inline const double &cur_vel_theta() const { return cur_vel_theta_; }
 
-        inline Eigen::Vector2d &velocity()
+        inline Eigen::Vector2d velocity()
         {
             Eigen::Vector2d velocity(cur_vel_x_ * std::cos(pose_.theta()), cur_vel_x_ * std::sin(pose_.theta()));
             return velocity;
         }
 
-        inline const Eigen::Vector2d &velocity() const
+        inline const Eigen::Vector2d velocity() const
         {
             Eigen::Vector2d velocity(cur_vel_x_ * std::cos(pose_.theta()), cur_vel_x_ * std::sin(pose_.theta()));
             return velocity;
