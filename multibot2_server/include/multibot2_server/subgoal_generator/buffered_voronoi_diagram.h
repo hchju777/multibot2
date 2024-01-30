@@ -17,6 +17,7 @@
 #include <CGAL/Boolean_set_operations_2.h>
 #include <CGAL/Polygon_2_algorithms.h>
 #include <CGAL/bounding_box.h>
+#include <CGAL/Polyline_simplification_2/simplify.h>
 
 #include <CGAL/create_offset_polygons_2.h>
 #include <CGAL/Polygon_offset_builder_2.h>
@@ -56,23 +57,26 @@ namespace multibot2_server::SubgoalGenerator
     public:
         BufferedVoronoiDiagram() {}
 
-        BufferedVoronoiDiagram(const std::vector<Site_2> &_points);
+        BufferedVoronoiDiagram(const std::vector<Site_2> &_points, const CGAL::Polygon_with_holes_2<Kernel> &_map_poly);
 
         BufferedVoronoiDiagram(const BufferedVoronoiDiagram &_buffered_voronoi_diagram)
         {
             vd_ = _buffered_voronoi_diagram.vd_;
-            bbox_ = _buffered_voronoi_diagram.bbox_;
+            box_poly_ = _buffered_voronoi_diagram.box_poly_;
+            map_poly_ = _buffered_voronoi_diagram.map_poly_;
+            min_offset_ = _buffered_voronoi_diagram.min_offset_;
+            stop_ratio_ = _buffered_voronoi_diagram.stop_ratio_;
         }
 
         ~BufferedVoronoiDiagram() { vd_.clear(); }
 
     public:
-        bool get_polygon(const Point_2 &_point, CGAL::Polygon_2<Kernel> &_poly);
+        bool get_polygon(const Point_2 &_point, CGAL::Polygon_with_holes_2<Kernel> &_poly);
 
-        bool get_raw_voronoi_diagram(const Point_2 &_point, CGAL::Polygon_2<Kernel> &_poly);
+        bool get_raw_voronoi_polygon(const Point_2 &_point, CGAL::Polygon_2<Kernel> &_poly);
 
     public:
-        bool convert_to_bvc(CGAL::Polygon_2<Kernel> &_poly, double _offset);
+        bool convert_to_bvc(const Point_2 &_point, double _offset, CGAL::Polygon_with_holes_2<Kernel> &_poly_w_holes);
 
     public:
         BufferedVoronoiDiagram &operator=(const BufferedVoronoiDiagram &_rhs)
@@ -80,7 +84,10 @@ namespace multibot2_server::SubgoalGenerator
             if (&_rhs != this)
             {
                 vd_ = _rhs.vd_;
-                bbox_ = _rhs.bbox_;
+                box_poly_ = _rhs.box_poly_;
+                map_poly_ = _rhs.map_poly_;
+                min_offset_ = _rhs.min_offset_;
+                stop_ratio_ = _rhs.stop_ratio_;
             }
 
             return *this;
@@ -97,10 +104,19 @@ namespace multibot2_server::SubgoalGenerator
     protected:
         Kernel::Segment_2 convert_to_seg(const CGAL::Object _seg_obj, bool _outgoing);
 
+        bool check_point_in_poly_w_holes(
+            const Point_2 &_point, const std::list<CGAL::Polygon_with_holes_2<Kernel>> &_poly_w_holes_list,
+            CGAL::Polygon_with_holes_2<Kernel> &_poly_w_holes);
+
     protected:
         VD vd_;
 
-        Kernel::Iso_rectangle_2 bbox_;
+        CGAL::Polygon_2<Kernel> box_poly_;
+
+        CGAL::Polygon_with_holes_2<Kernel> map_poly_;
+
+        double min_offset_{2.7};
+        double stop_ratio_{0.7};
 
     }; // class BufferedVoronoiDiagram
 } // namespace multibot2_server::SubgoalGenerator

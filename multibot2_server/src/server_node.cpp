@@ -143,5 +143,52 @@ namespace multibot2_server
         }
 
         dynamic_graph->addVertices(robots);
+
+        std::vector<Site_2> points;
+        points.clear();
+        // points.push_back(Site_2(7.8, 6.3));
+        points.push_back(Site_2(8.6, 3.8));
+        points.push_back(Site_2(9.8, 6.3));
+
+        SubgoalGenerator::BufferedVoronoiDiagram::SharedPtr bufferedVoronoiDiagram =
+            std::make_shared<SubgoalGenerator::BufferedVoronoiDiagram>(points, map_poly);
+
+        static bool printed = false;
+
+        if (printed)
+            return;
+
+        for (const auto &point : points)
+        {
+            Point_2 p(point.x(), point.y());
+
+            CGAL::Polygon_with_holes_2<Kernel> polygon_w_holes;
+            bool success = bufferedVoronoiDiagram->get_polygon(p, polygon_w_holes);
+            if (not(success))
+                continue;
+
+            std::cout << "- Polygon:" << std::endl;
+            for (const auto &p : polygon_w_holes.outer_boundary().container())
+                std::cout << "  - vertex: [" << p.x() << ", " << p.y() << "]" << std::endl;
+            // for (const auto &hole : polygon_w_holes.holes())
+            // {
+            //     std::cout << "- Hole:" << std::endl;
+            //     for (const auto &p : hole.container())
+            //         std::cout << "  - vertex: [" << p.x() << ", " << p.y() << "]" << std::endl;
+            // }
+            bufferedVoronoiDiagram->convert_to_bvc(p, 0.7, polygon_w_holes);
+            std::cout << "- Polygon:" << std::endl;
+            for (const auto &p : polygon_w_holes.outer_boundary().container())
+                std::cout << "  - vertex: [" << p.x() << ", " << p.y() << "]" << std::endl;
+            for (const auto &hole : polygon_w_holes.holes())
+            {
+                std::cout << "- Polygon:" << std::endl;
+                for (const auto &p : hole.container())
+                    std::cout << "  - vertex: [" << p.x() << ", " << p.y() << "]" << std::endl;
+            }
+        }
+
+        std::cout << std::endl;
+        printed = true;
     }
 } // namespace multibot2_server
