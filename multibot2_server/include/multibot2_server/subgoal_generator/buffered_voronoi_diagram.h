@@ -56,6 +56,7 @@ namespace multibot2_server::SubgoalGenerator
 
     public:
         typedef std::pair<Point_2, CGAL::Polygon_with_holes_2<Kernel>> VoronoiCell;
+        typedef std::pair<Point_2, CGAL::Polygon_2<Kernel>> VoronoiCellNoMap;
 
     public:
         BufferedVoronoiDiagram() {}
