@@ -34,8 +34,10 @@ namespace multibot2_server
     void Instance_Manager::init_parameters()
     {
         nh_->declare_parameter("server.communication_range", communication_range_);
+        nh_->declare_parameter("server.subgoal_generator.duration", subgoal_generator_duration_);
 
         nh_->get_parameter_or("server.communication_range", communication_range_, communication_range_);
+        nh_->get_parameter_or("server.subgoal_generator.duration", subgoal_generator_duration_, subgoal_generator_duration_);
 
         global_costmap_ros_->configure();
     }
@@ -55,7 +57,7 @@ namespace multibot2_server
         costmap_converter->setCostmap2D(global_costmap_ros_->getCostmap());
         costmap_converter->compute();
 
-        static_polygons_ = costmap_converter->getPolygons();
+        static_obstacles_ = costmap_converter->getPolygons();
     }
 
     void Instance_Manager::insertRobot(const Robot_ROS &_robot_ros)

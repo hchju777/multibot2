@@ -8,10 +8,13 @@
 
 #include "multibot2_server/instance_manager.h"
 #include "multibot2_server/subgoal_generator/dynamic_graph.h"
+#include "multibot2_server/subgoal_generator/buffered_voronoi_diagram.h"
 #include "multibot2_server/server_panel.h"
 
 #include "multibot2_util/panel_util.h"
 #include "multibot2_util/Interface/Observer_Interface.h"
+
+#include <geometry_msgs/msg/polygon.hpp>
 
 #include "multibot2_msgs/msg/robot_state.hpp"
 

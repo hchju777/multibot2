@@ -59,8 +59,14 @@ namespace multibot2_server
         std::map<std::string, Robot_ROS> &robots() { return robots_; }
         const std::map<std::string, Robot_ROS> &robots() const { return robots_; }
 
-        costmap_converter::PolygonContainerConstPtr &static_polygons() { return static_polygons_; }
-        const costmap_converter::PolygonContainerConstPtr &static_polygons() const { return static_polygons_; }
+        std::shared_ptr<nav2_costmap_2d::Costmap2DROS> &global_costmap_ros() { return global_costmap_ros_; }
+        const std::shared_ptr<nav2_costmap_2d::Costmap2DROS> &global_costmap_ros() const { return global_costmap_ros_; }
+
+        costmap_converter::PolygonContainerConstPtr &static_obstacles() { return static_obstacles_; }
+        const costmap_converter::PolygonContainerConstPtr &static_obstacles() const { return static_obstacles_; }
+
+        double &subgoal_generator_duration() { return subgoal_generator_duration_; }
+        const double &subgoal_generator_duration() const { return subgoal_generator_duration_; }
 
     public:
         void init_variables();
@@ -107,10 +113,11 @@ namespace multibot2_server
         std::shared_ptr<nav2_costmap_2d::Costmap2DROS> global_costmap_ros_;
         std::unique_ptr<nav2_util::NodeThread> global_costmap_thread_;
 
-        costmap_converter::PolygonContainerConstPtr static_polygons_;
+        costmap_converter::PolygonContainerConstPtr static_obstacles_;
 
         std::shared_ptr<nav2_navfn_planner::NavfnPlanner> navfn_global_planner_;
         double communication_range_{4.0};
+        double subgoal_generator_duration_{0.05};
 
     }; // class Instance_Manager
 } // namespace multibot2_server
