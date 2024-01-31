@@ -53,7 +53,7 @@ find_package(visualization_msgs REQUIRED)
 find_package(ompl REQUIRED)
 find_package(Ceres REQUIRED COMPONENTS SuiteSparse)
 
-find_package(Qt5 REQUIRED COMPONENTS Core Gui Widgets)
+find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets)
 
 SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${PROJECT_SOURCE_DIR}/cmake_modules)
 find_package(SUITESPARSE REQUIRED)
@@ -73,7 +73,7 @@ elseif (EXISTS "FindEigen.cmake")
 endif (EXISTS "FindEigen3.cmake")
 
 set(EXTERNAL_INCLUDE_DIRS ${Eigen_INCLUDE_DIRS} ${SUITESPARSE_INCLUDE_DIRS} ${G2O_INCLUDE_DIR})
-set(EXTERNAL_LIBS ${Boost_LIBRARIES} ${SUITESPARSE_LIBRARIES} ${G2O_LIBRARIES} ${CERES_LIBRARIES} ${OMPL_LIBRARIES} Qt5::Widgets)
+set(EXTERNAL_LIBS ${Boost_LIBRARIES} ${SUITESPARSE_LIBRARIES} ${G2O_LIBRARIES} ${CERES_LIBRARIES} ${OMPL_LIBRARIES} Qt6::Widgets)
 
 ################################################################################
 # Build
@@ -99,7 +99,7 @@ set(ROBOT_DEPENDENCIES
   visualization_msgs
   multibot2_msgs
   multibot2_util
-  Qt5
+  Qt6
   nav2_core
   nav2_costmap_2d
   nav2_util
@@ -122,8 +122,8 @@ add_library(${library_name} SHARED
 )
 
 target_include_directories(${library_name} PUBLIC
-  ${Qt5Core_INCLUDE_DIRS}
-  ${Qt5Widgets_INCLUDE_DIRS}
+  ${Qt6Core_INCLUDE_DIRS}
+  ${Qt6Widgets_INCLUDE_DIRS}
   ${OGRE_INCLUDE_DIRS}
 )
 
@@ -172,7 +172,7 @@ install(DIRECTORY
 )
 
 ament_export_dependencies(ament_cmake)
-ament_export_dependencies(Qt5)
+ament_export_dependencies(Qt6)
 
 ament_export_libraries(${library_name})
 

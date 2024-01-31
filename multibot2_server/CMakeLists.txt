@@ -32,6 +32,7 @@ ENDIF()
 # Find dependencies
 ################################################################################
 find_package(ament_cmake REQUIRED)
+find_package(costmap_converter REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(rclpy REQUIRED)
 find_package(multibot2_msgs REQUIRED)
@@ -44,7 +45,7 @@ find_package(visualization_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
 
 find_package(gazebo_ros REQUIRED)
-find_package(Qt5 REQUIRED COMPONENTS Core Gui Widgets)
+find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets)
 find_package(CGAL REQUIRED)
 
 ################################################################################
@@ -57,13 +58,14 @@ include_directories(
 # server
 set(SERVER_DEPENDENCIES
   rclcpp
+  costmap_converter
   nav_msgs
   std_msgs
   geometry_msgs
   visualization_msgs
   multibot2_msgs
   multibot2_util
-  Qt5
+  Qt6
 )
 
 set(SERVER_EXEC_NAME "server")
@@ -71,17 +73,21 @@ set(library_name ${SERVER_EXEC_NAME}_core)
 
 file(GLOB SERVER_SRC_FILES "src/*.cpp")
 list(REMOVE_ITEM SERVER_SRC_FILES ${PROJECT_SOURCE_DIR}/src/main.cpp)
+file(GLOB GLOBAL_PLANNER_SRC_FILES "src/global_planner/*.cpp")
+file(GLOB SUBGOAL_GENERATOR_SRC_FILES "src/subgoal_generator/*.cpp")
 set(PANEL_HEADER_FILE "include/multibot2_server/server_panel.h")
 add_library(${library_name} SHARED
   ${SERVER_SRC_FILES}
+  ${GLOBAL_PLANNER_SRC_FILES}
+  ${SUBGOAL_GENERATOR_SRC_FILES}
   ${PANEL_HEADER_FILE}
 )
 
-set(EXTERNAL_LIBS ${CGAL_LIBRARIES} Qt5::Widgets)
+set(EXTERNAL_LIBS ${CGAL_LIBRARIES} Qt6::Widgets)
 
 target_include_directories(${library_name} PUBLIC
-  ${Qt5Core_INCLUDE_DIRS}
-  ${Qt5Widgets_INCLUDE_DIRS}
+  ${Qt6Core_INCLUDE_DIRS}
+  ${Qt6Widgets_INCLUDE_DIRS}
   ${OGRE_INCLUDE_DIRS}
 )
 
@@ -121,6 +127,7 @@ install(DIRECTORY
   launch
   maps
   models
+  params
   rviz
   ui
   worlds
@@ -131,7 +138,7 @@ ament_environment_hooks("${CMAKE_CURRENT_SOURCE_DIR}/env-hooks/multibot2_server.
 
 ament_export_dependencies(ament_cmake)
 ament_export_dependencies(gazebo_ros)
-ament_export_dependencies(Qt5)
+ament_export_dependencies(Qt6)
 
 ament_export_libraries(${library_name})
 

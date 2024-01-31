@@ -1,12 +1,15 @@
 <?xml version="1.0"?>
 <package format="3">
   <name>multibot2_server</name>
-  <version>0.1.0</version>
+  <version>0.3.0</version>
   <description>
     Multi-robot server
   </description>
   <maintainer email="hchju777@korea.ac.kr">Changju Hwang</maintainer>
   <license>GNU General Public License v3.0</license>
+
+  <depend>costmap_converter</depend>
+  <depend>costmap_converter_msgs</depend>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
   <build_depend>qtbase5-dev</build_depend>
@@ -29,10 +32,10 @@
   <exec_depend>gazebo</exec_depend>
   <exec_depend>gazebo_plugins</exec_depend>
 
-  <exec_depend>libqt5-core</exec_depend>
-  <exec_depend>libqt5-gui</exec_depend>
-  <exec_depend>libqt5-opengl</exec_depend>
-  <exec_depend>libqt5-widgets</exec_depend>
+  <exec_depend>libqt6-core</exec_depend>
+  <exec_depend>libqt6-gui</exec_depend>
+  <exec_depend>libqt6-opengl</exec_depend>
+  <exec_depend>libqt6-widgets</exec_depend>
 
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>ament_lint_common</test_depend>

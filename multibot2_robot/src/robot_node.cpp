@@ -51,6 +51,10 @@ namespace multibot2_robot
 
     void MultibotRobot::init_parameters()
     {
+        nh_->declare_parameter("robot.goal_tolerance", goal_tolerance_);
+
+        nh_->get_parameter_or("robot.goal_tolerance", goal_tolerance_, goal_tolerance_);
+
         std::shared_ptr<nav2_costmap_2d::Costmap2DROS> &global_costmap_ros = instance_manager_->global_costmap_ros();
         std::shared_ptr<nav2_costmap_2d::Costmap2DROS> &local_costmap_ros = instance_manager_->local_costmap_ros();
 
@@ -80,8 +84,7 @@ namespace multibot2_robot
         multibot2_util::Pose relativePose = robot_ros.subgoal() - robot.pose();
         double squaredDistance = relativePose.position().squaredNorm();
 
-        double tolerance = 0.25;
-        if (squaredDistance < tolerance * tolerance)
+        if (squaredDistance < goal_tolerance_ * goal_tolerance_)
         {
             // Change Mode as manual
             geometry_msgs::msg::Twist zero_cmd_vel;

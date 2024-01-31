@@ -62,11 +62,11 @@ def generate_launch_description():
     # Map server
     map_server_param_path = os.path.join(
         multibot2_server_dir,
-        'maps',
+        'params',
         'map_server_params.yaml'
     )
 
-    with open(os.path.join(multibot2_server_dir, 'maps', 'map_server_params.yaml')) as map_server_params:
+    with open(map_server_param_path) as map_server_params:
         map_server_params = yaml.load(map_server_params, Loader=yaml.Loader)
         map = map_server_params['map_server']['ros__parameters']['map']
         yaml_filename = os.path.join(
@@ -127,11 +127,34 @@ def generate_launch_description():
     )
 
     # Server Node
+    fake_map_to_base = Node(
+        package='tf2_ros',
+        executable='static_transform_publisher',
+        namespace='',
+        output='screen',
+        arguments=['0','0','0','0','0','0',
+                   'map', 'server/base_link']
+    )
+    
+    global_costmap_Config = RewrittenYaml(
+        source_file = os.path.join(multibot2_server_dir, 'params', 'global_costmap.yaml'),
+        root_key = '',
+        param_rewrites={
+            'robot_base_frame': 'server/base_link',
+            'use_sim_time': use_sim_time
+        },
+        convert_types=True
+    )
+    
     multibot2_server_cmd = Node(
         package='multibot2_server',
         executable='server',
         name='server',
-        output='screen'
+        output='screen',
+        parameters=[
+            global_costmap_Config,
+            os.path.join(multibot2_server_dir, 'params', 'server_params.yaml')
+        ]
     )
 
     # Create the launch description and populate
@@ -151,6 +174,7 @@ def generate_launch_description():
     ld.add_action(start_gazebo_server_cmd)
     ld.add_action(start_gazebo_client_cmd)
 
+    ld.add_action(fake_map_to_base)
     ld.add_action(multibot2_server_cmd)
 
     return ld
