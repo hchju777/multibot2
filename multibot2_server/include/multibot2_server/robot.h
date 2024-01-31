@@ -14,7 +14,7 @@ namespace multibot2_server
         typedef std::shared_ptr<Robot> SharedPtr;
 
     public:
-        typedef std::map<double, Robot *, std::greater<double>> Neighbors;
+        typedef std::map<double, Robot, std::greater<double>> Neighbors;
 
         struct Cone
         {

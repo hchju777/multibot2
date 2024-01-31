@@ -31,6 +31,9 @@ namespace multibot2_server::SubgoalGenerator
         std::list<CGAL::Polygon_with_holes_2<Kernel>> cropped_vn_poly;
         CGAL::intersection(vn_poly, box_poly_, std::back_insert_iterator(cropped_vn_poly));
 
+        if (cropped_vn_poly.empty())
+            return false;
+
         CGAL::Polygon_with_holes_2<Kernel> &poly_w_holes = cropped_vn_poly.front();
         _poly = poly_w_holes.outer_boundary();
 
@@ -129,6 +132,20 @@ namespace multibot2_server::SubgoalGenerator
 
     bool BufferedVoronoiDiagram::convert_to_bvc(const Point_2 &_point, double _offset, CGAL::Polygon_with_holes_2<Kernel> &_poly_w_holes)
     {
+        for (size_t i = 0; i < _poly_w_holes.outer_boundary().size(); ++i)
+        {
+            const Point_2 &p1 = _poly_w_holes.outer_boundary()[i];
+            const Point_2 &p2 = _poly_w_holes.outer_boundary()[(i + 1) % _poly_w_holes.outer_boundary().size()];
+
+            Eigen::Vector3d v1(CGAL::to_double(_point.x() - p1.x()), CGAL::to_double(_point.y() - p1.y()), 0.0);
+            Eigen::Vector3d v2(CGAL::to_double(p2.x() - p1.x()), CGAL::to_double(p2.y() - p1.y()), 0.0);
+
+            double distance = v1.cross(v2).z() / v2.norm();
+
+            if (distance < _offset)
+                return false;
+        }
+
         // To get a buffered voronoi cell, CGAL::create_interior_straight_skeleton_2 should be used.
         // However, to use CGAL::create_interior_straight_skeleton_2, inexact_kernel should be used.
         // See: https://doc.cgal.org/latest/Straight_skeleton_2/group__PkgStraightSkeleton2SkeletonFunctions.html

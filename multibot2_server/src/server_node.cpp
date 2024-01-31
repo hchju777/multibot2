@@ -11,7 +11,7 @@ namespace multibot2_server
 
         std::chrono::duration<double> duration{instance_manager_->subgoal_generator_duration()};
         subgoal_update_timer_ = nh_->create_wall_timer(
-            std::chrono::duration_cast<std::chrono::milliseconds>(duration), std::bind(&MultibotServer::generate_subgoals, this));
+            std::chrono::duration_cast<std::chrono::milliseconds>(duration), std::bind(&MultibotServer::update_subgoals, this));
 
         RCLCPP_INFO(this->get_logger(), "MultibotServer has been initialized");
     }
@@ -62,13 +62,15 @@ namespace multibot2_server
 
         instance_manager_ = std::make_shared<Instance_Manager>(nh_);
 
+        subgoal_generator_ = std::make_unique<SubgoalGenerator::Generator>();
+        subgoal_generator_->update_map_polygon(instance_manager_->global_costmap_ros()->getCostmap(),
+                                               instance_manager_->static_obstacles());
+
         panel_is_running_ = false;
     }
 
-    void MultibotServer::generate_subgoals()
+    void MultibotServer::update_subgoals()
     {
-        SubgoalGenerator::DynamicGraph::UniquePtr dynamic_graph = std::make_unique<SubgoalGenerator::DynamicGraph>();
-
         std::map<std::string, Robot> robots;
         for (const auto &robot_rosPair : instance_manager_->robots())
         {
@@ -77,118 +79,6 @@ namespace multibot2_server
             robots.emplace(robot.name(), robot);
         }
 
-        // Todo: Move to Subgoal Generator Constructor
-        CGAL::Polygon_with_holes_2<Kernel> map_poly;
-        {
-            nav2_costmap_2d::Costmap2D *global_costmap = instance_manager_->global_costmap_ros()->getCostmap();
-            double width = global_costmap->getSizeInMetersX();
-            double height = global_costmap->getSizeInMetersY();
-
-            std::vector<Point_2> box_map_vertices = {
-                Point_2(global_costmap->getOriginX(), global_costmap->getOriginY()),
-                Point_2(global_costmap->getOriginX() + width, global_costmap->getOriginY()),
-                Point_2(global_costmap->getOriginX() + width, global_costmap->getOriginY() + height),
-                Point_2(global_costmap->getOriginX(), global_costmap->getOriginY() + height)};
-
-            map_poly.outer_boundary() = CGAL::Polygon_2<Kernel>(box_map_vertices.begin(), box_map_vertices.end());
-
-            auto static_obstacles = instance_manager_->static_obstacles();
-            for (auto obst_iter = static_obstacles->begin(); obst_iter != static_obstacles->end(); ++obst_iter)
-            {
-                if (obst_iter->points.size() < 3)
-                    continue;
-
-                std::vector<Eigen::Vector2d> vertices;
-                for (const auto &vertex : obst_iter->points)
-                    vertices.push_back(Eigen::Vector2d(vertex.x, vertex.y));
-
-                if (vertices.front().isApprox(vertices.back()))
-                    vertices.pop_back();
-
-                CGAL::Polygon_2<Kernel> obst_poly;
-                for (const auto &vertex : vertices)
-                    obst_poly.push_back(Point_2(vertex.x(), vertex.y()));
-
-                std::list<CGAL::Polygon_with_holes_2<Kernel>> cropped_map_poly;
-                CGAL::difference(map_poly, obst_poly, std::back_inserter(cropped_map_poly));
-
-                double max_area = 0.0;
-                for (const auto &poly_w_holes : cropped_map_poly)
-                {
-                    double area = CGAL::to_double(poly_w_holes.outer_boundary().area());
-                    for (const auto &hole : poly_w_holes.holes())
-                        area -= CGAL::to_double(hole.area());
-
-                    if (area > max_area)
-                    {
-                        max_area = area;
-                        map_poly = poly_w_holes;
-                    }
-                }
-            }
-
-            // std::cout << "- Polygon:" << std::endl;
-            // for (const auto &p : map_poly.outer_boundary().container())
-            // {
-            //     std::cout << "  - vertex: [" << p.x() << "," << p.y() << "]" << std::endl;
-            // }
-            // for (const auto &hole : map_poly.holes())
-            // {
-            //     std::cout << "- Polygon:" << std::endl;
-            //     for (const auto &p : hole.container())
-            //     {
-            //         std::cout << "  - vertex: [" << p.x() << "," << p.y() << "]" << std::endl;
-            //     }
-            // }
-        }
-
-        dynamic_graph->addVertices(robots);
-
-        std::vector<Site_2> points;
-        points.clear();
-        // points.push_back(Site_2(7.8, 6.3));
-        points.push_back(Site_2(8.6, 3.8));
-        points.push_back(Site_2(9.8, 6.3));
-
-        SubgoalGenerator::BufferedVoronoiDiagram::SharedPtr bufferedVoronoiDiagram =
-            std::make_shared<SubgoalGenerator::BufferedVoronoiDiagram>(points, map_poly);
-
-        static bool printed = false;
-
-        if (printed)
-            return;
-
-        for (const auto &point : points)
-        {
-            Point_2 p(point.x(), point.y());
-
-            CGAL::Polygon_with_holes_2<Kernel> polygon_w_holes;
-            bool success = bufferedVoronoiDiagram->get_polygon(p, polygon_w_holes);
-            if (not(success))
-                continue;
-
-            std::cout << "- Polygon:" << std::endl;
-            for (const auto &p : polygon_w_holes.outer_boundary().container())
-                std::cout << "  - vertex: [" << p.x() << ", " << p.y() << "]" << std::endl;
-            // for (const auto &hole : polygon_w_holes.holes())
-            // {
-            //     std::cout << "- Hole:" << std::endl;
-            //     for (const auto &p : hole.container())
-            //         std::cout << "  - vertex: [" << p.x() << ", " << p.y() << "]" << std::endl;
-            // }
-            bufferedVoronoiDiagram->convert_to_bvc(p, 0.7, polygon_w_holes);
-            std::cout << "- Polygon:" << std::endl;
-            for (const auto &p : polygon_w_holes.outer_boundary().container())
-                std::cout << "  - vertex: [" << p.x() << ", " << p.y() << "]" << std::endl;
-            for (const auto &hole : polygon_w_holes.holes())
-            {
-                std::cout << "- Polygon:" << std::endl;
-                for (const auto &p : hole.container())
-                    std::cout << "  - vertex: [" << p.x() << ", " << p.y() << "]" << std::endl;
-            }
-        }
-
-        std::cout << std::endl;
-        printed = true;
+        subgoal_generator_->update_subgoals(robots);
     }
 } // namespace multibot2_server

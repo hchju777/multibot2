@@ -12,30 +12,26 @@ namespace multibot2_server::SubgoalGenerator
             return false;
         }
 
-        Robot *robot = robots_[_name];
+        Robot& robot = robots_[_name];
 
-        for (const auto &neighborPair : robot->neighbors())
+        for (const auto &neighborPair : robot.neighbors())
         {
-            const Robot *other = neighborPair.second;
+            const Robot other = neighborPair.second;
 
-            const Eigen::Vector2d relativePosition = other->pose().position() - robot->pose().position();
-            const Eigen::Vector2d relativeVelocity = robot->velocity() - other->velocity();
+            const Eigen::Vector2d relativePosition = other.pose().position() - robot.pose().position();
+            const Eigen::Vector2d relativeVelocity = robot.velocity() - other.velocity();
 
             const double distSq = relativePosition.squaredNorm();
-            const double combinedRadius = robot->radius() + other->radius();
+            const double combinedRadius = robot.radius() + other.radius();
             const double combinedRadiusSq = combinedRadius * combinedRadius;
 
             Robot::Cone VOCone;
-            VOCone.neighbor_ = other->name();
-            VOCone.point_ = robot->pose().position() + other->velocity() * timeHorizon_;
+            VOCone.neighbor_ = other.name();
+            VOCone.point_ = robot.pose().position() + other.velocity() * timeHorizon_;
 
             if (distSq > combinedRadiusSq)
             {
                 // No collision
-                const Eigen::Vector2d w = relativeVelocity * timeHorizon_ - relativePosition;
-                const double wLengthSq = w.squaredNorm();
-                const double dotProduct = w.dot(relativePosition);
-
                 const double leg = std::sqrt(distSq - combinedRadiusSq);
                 VOCone.radius_ = leg;
                 VOCone.left_direction_ =
@@ -61,7 +57,7 @@ namespace multibot2_server::SubgoalGenerator
                 VOCone.right_direction_ = Eigen::Vector2d(unitW.y(), -unitW.x());
             }
 
-            robot->VOCones().push_back(VOCone);
+            robot.VOCones().push_back(VOCone);
         }
 
         return true;
@@ -69,13 +65,7 @@ namespace multibot2_server::SubgoalGenerator
 
     void VelocityObstacle::clearRobots()
     {
-        for (auto &robotPair : robots_)
-        {
-            delete robotPair.second;
-            robots_.erase(robotPair.first);
-        }
-
-        std::map<std::string, Robot *> empty_robots;
+        Robots empty_robots;
         robots_.swap(empty_robots);
     }
 } // namespace multibot2_server::SubgoalGenerator

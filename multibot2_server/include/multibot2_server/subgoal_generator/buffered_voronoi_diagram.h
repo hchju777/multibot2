@@ -5,6 +5,9 @@
 #include <limits>
 #include <cassert>
 
+#include <Eigen/Dense>
+#include <Eigen/Geometry>
+
 // CGAL includes
 #include <CGAL/Exact_predicates_exact_constructions_kernel.h>
 #include <CGAL/Delaunay_triangulation_2.h>

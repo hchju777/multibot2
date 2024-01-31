@@ -20,23 +20,27 @@ namespace multibot2_server::SubgoalGenerator::PIBT
     public:
         typedef CandidatesUtil::VoronoiCell VoronoiCell;
         typedef CandidatesUtil::VoronoiCellNoMap VoronoiCellNoMap;
-        
+
         typedef CandidatesUtil::Candidate Candidate;
 
     public:
         Solver() {}
 
-        Solver(const Robots &_robots, std::stack<std::string> _priority_graph);
+        Solver(const Robots &_robots, std::stack<std::string> _priority_graph, const CGAL::Polygon_with_holes_2<Kernel> &_map_poly);
 
         Solver(const Solver &_solver);
 
         ~Solver() {}
 
     public:
+        Robots &robots() { return robots_; }
+        const Robots &robots() const { return robots_; }
+
+    public:
         Solver &operator=(const Solver &_rhs);
 
     public:
-        bool solve();
+        void solve();
 
     protected:
         bool priorityInheritance(
@@ -58,7 +62,7 @@ namespace multibot2_server::SubgoalGenerator::PIBT
             std::string _parent = std::string());
 
     protected:
-        bool set_bvc_generator();
+        bool set_bvc_generator(const CGAL::Polygon_with_holes_2<Kernel> &_map_poly);
 
         bool generate_diagrams();
 

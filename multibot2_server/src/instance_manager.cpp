@@ -289,19 +289,24 @@ namespace multibot2_server
                 const nav_msgs::msg::Path plan = navfn_global_planner_->createPlan(self_pose, neighbor_pose);
 
                 double path_length = 0.0;
-                for (size_t i = 0; i < plan.poses.size() - 1; ++i)
+                if (not(plan.poses.empty()))
                 {
-                    double diffX = plan.poses[i].pose.position.x - plan.poses[i + 1].pose.position.x;
-                    double diffY = plan.poses[i].pose.position.y - plan.poses[i + 1].pose.position.y;
+                    for (size_t i = 0; i < plan.poses.size() - 1; ++i)
+                    {
+                        double diffX = plan.poses[i].pose.position.x - plan.poses[i + 1].pose.position.x;
+                        double diffY = plan.poses[i].pose.position.y - plan.poses[i + 1].pose.position.y;
 
-                    path_length += std::sqrt(diffX * diffX + diffY * diffY);
+                        path_length += std::sqrt(diffX * diffX + diffY * diffY);
+                    }
                 }
+                else
+                    path_length = relative_pose.position().squaredNorm();
 
                 if (path_length > communication_range_)
                     continue;
 
-                self.neighbors().emplace(path_length, &neighbor);
-                neighbor.neighbors().emplace(path_length, &self);
+                self.neighbors().emplace(path_length, neighbor);
+                neighbor.neighbors().emplace(path_length, self);
             }
         }
     }

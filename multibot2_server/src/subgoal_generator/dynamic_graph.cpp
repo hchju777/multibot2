@@ -17,7 +17,7 @@ namespace multibot2_server::SubgoalGenerator
 
             for (const auto &neighborPair : robot.neighbors())
             {
-                const Robot &neighbor = *neighborPair.second;
+                const Robot &neighbor = neighborPair.second;
 
                 if (vertices_.contains(neighbor.name()))
                     continue;

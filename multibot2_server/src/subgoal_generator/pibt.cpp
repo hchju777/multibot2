@@ -2,7 +2,8 @@
 
 namespace multibot2_server::SubgoalGenerator::PIBT
 {
-    Solver::Solver(const Robots &_robots, std::stack<std::string> _priority_graph)
+    Solver::Solver(const Robots &_robots, std::stack<std::string> _priority_graph, const CGAL::Polygon_with_holes_2<Kernel> &_map_poly)
+        : robots_(_robots)
     {
         priority_list_.clear();
         while (not(_priority_graph.empty()))
@@ -14,7 +15,7 @@ namespace multibot2_server::SubgoalGenerator::PIBT
                 priority_list_.push_back(robotName);
         }
 
-        set_bvc_generator();
+        set_bvc_generator(_map_poly);
 
         if (not(generate_diagrams()))
         {
@@ -54,7 +55,7 @@ namespace multibot2_server::SubgoalGenerator::PIBT
         return *this;
     }
 
-    bool Solver::solve()
+    void Solver::solve()
     {
         std::set<std::string> open, close;
         for (const auto &robotPair : robots_)
@@ -101,7 +102,7 @@ namespace multibot2_server::SubgoalGenerator::PIBT
         return priorityInheritance(_childName, candidates, _close, _open);
     }
 
-    bool Solver::set_bvc_generator()
+    bool Solver::set_bvc_generator(const CGAL::Polygon_with_holes_2<Kernel> &_map_poly)
     {
         std::vector<Site_2> points;
 
@@ -112,7 +113,7 @@ namespace multibot2_server::SubgoalGenerator::PIBT
             points.push_back(Site_2(robot.pose().x(), robot.pose().y()));
         }
 
-        bvc_generator_ = std::make_shared<BufferedVoronoiDiagram>(points);
+        bvc_generator_ = std::make_shared<BufferedVoronoiDiagram>(points, _map_poly);
 
         return true;
     }
@@ -183,6 +184,9 @@ namespace multibot2_server::SubgoalGenerator::PIBT
             }
         }
 
+        if (not(voronoi_diagram_w_no_map_.contains(_robot.name())) or not(buffered_voronoi_diagram_.contains(_robot.name())))
+            return std::list<Solver::Candidate>();
+
         auto rawCandidates = CandidatesUtil::createRawCandidates(
             _robot,
             voronoi_diagram_w_no_map_[_robot.name()], buffered_voronoi_diagram_[_robot.name()],
@@ -211,8 +215,15 @@ namespace multibot2_server::SubgoalGenerator::PIBT
             const std::list<CGAL::Polygon_with_holes_2<Kernel>> &truncated_polygon = CandidatesUtil::get_truncated_polygon(triangular_subpolygon, cones);
 
             double truncated_area = std::accumulate(truncated_polygon.begin(), truncated_polygon.end(), 0.0,
-                                                    [](double _sum, const CGAL::Polygon_2<Kernel> &_poly)
-                                                    { return _sum += CGAL::to_double(_poly.area()); });
+                                                    [](double _sum, const CGAL::Polygon_with_holes_2<Kernel> &_poly_w_holes)
+                                                    {
+                                                        _sum += CGAL::to_double(_poly_w_holes.outer_boundary().area());
+
+                                                        for (const auto &hole : _poly_w_holes.holes())
+                                                            _sum -= CGAL::to_double(hole.area());
+
+                                                        return _sum;
+                                                    });
 
             if (truncated_area < 0.2)
                 continue;
@@ -234,12 +245,8 @@ namespace multibot2_server::SubgoalGenerator::PIBT
             VoronoiCellNoMap voronoi_cell_w_no_map;
             voronoi_cell_w_no_map.first = site;
             if (not(bvc_generator_->get_polygon(site, voronoi_cell_w_no_map.second)))
-            {
-                std::cerr << "PIBT::Solver::generate_diagrams() "
-                          << "There is no voronoi cell with no map." << std::endl;
-
-                return false;
-            }
+                continue;
+            
             voronoi_diagram_w_no_map_.emplace(robot.name(), voronoi_cell_w_no_map);
 
             VoronoiCell voronoi_cell;
@@ -248,16 +255,11 @@ namespace multibot2_server::SubgoalGenerator::PIBT
             {
                 std::cerr << "PIBT::Solver::generate_diagrams() "
                           << "There is no voronoi cell." << std::endl;
-
-                return false;
             }
 
             VoronoiCell buffered_voronoi_cell = voronoi_cell;
             if (not(bvc_generator_->convert_to_bvc(site, robot.radius(), buffered_voronoi_cell.second)))
-            {
-                // There is no buffered voronoi cell
                 continue;
-            }
             buffered_voronoi_diagram_.emplace(robot.name(), buffered_voronoi_cell);
         }
 

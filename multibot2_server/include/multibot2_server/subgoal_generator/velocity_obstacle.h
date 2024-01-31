@@ -28,8 +28,8 @@ namespace multibot2_server::SubgoalGenerator
         bool updateVOCones(std::string _name);
 
     public:
-        std::map<std::string, Robot *> &robots() { return robots_; }
-        const std::map<std::string, Robot *> &robots() const { return robots_; }
+        Robots &robots() { return robots_; }
+        const Robots &robots() const { return robots_; }
 
     public:
         VelocityObstacle &operator=(const VelocityObstacle &_rhs)
@@ -44,13 +44,13 @@ namespace multibot2_server::SubgoalGenerator
         }
 
     public:
-        inline void emplaceRobot(Robot *_robot) { robots_.emplace(_robot->name(), _robot); }
+        inline void emplaceRobot(const Robot &_robot) { robots_.emplace(_robot.name(), _robot); }
 
     protected:
         void clearRobots();
 
     protected:
-        std::map<std::string, Robot *> robots_;
+        Robots robots_;
 
         double timeHorizon_{0.05};
 

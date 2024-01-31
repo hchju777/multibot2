@@ -18,6 +18,9 @@ namespace multibot2_server::SubgoalGenerator
         typedef std::shared_ptr<DynamicGraph> SharedPtr;
 
     public:
+        typedef std::map<std::string, Vertex> Vertices;
+
+    public:
         DynamicGraph() { reset(); }
 
         DynamicGraph(const DynamicGraph &_dynamic_graph)
@@ -48,7 +51,7 @@ namespace multibot2_server::SubgoalGenerator
 
         void print();
 
-    protected:
+    public:
         void reset();
 
     protected:
