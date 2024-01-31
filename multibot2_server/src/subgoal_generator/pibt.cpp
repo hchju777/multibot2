@@ -66,9 +66,9 @@ namespace multibot2_server::SubgoalGenerator::PIBT
 
         while (not(open.empty()))
         {
-            Robot agent = robots_[priority_list_.front()];
+            Robot robot = robots_[priority_list_.front()];
 
-            priorityInheritance(agent.name(), close, open);
+            priorityInheritance(robot.name(), close, open);
 
             priority_list_.remove_if([&open](std::string _robotName)
                                      { return not(open.contains(_robotName)); });
@@ -269,13 +269,13 @@ namespace multibot2_server::SubgoalGenerator::PIBT
         if (not(robots_.contains(_robotName)))
         {
             std::cerr << "PIBT::Solver::validate_subgoal: "
-                      << "There is no agent named " << _robotName << std::endl;
+                      << "There is no robot named " << _robotName << std::endl;
             return false;
         }
 
-        const auto &agent = robots_[_robotName];
+        const auto &robot = robots_[_robotName];
 
-        return is_in_the_same_face(Point_2(agent.pose().x(), agent.pose().y()), _subgoal);
+        return is_in_the_same_face(Point_2(robot.pose().x(), robot.pose().y()), _subgoal);
     }
 
     bool Solver::is_in_the_same_face(const Point_2 &_p1, const Point_2 &_p2)
