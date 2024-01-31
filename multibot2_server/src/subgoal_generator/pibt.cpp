@@ -18,7 +18,7 @@ namespace multibot2_server::SubgoalGenerator::PIBT
 
         if (not(generate_diagrams()))
         {
-            std::cerr << "SubgoalGenerator::Generator::solve(): "
+            std::cerr << "PIBT::Solver::Solver(): "
                       << "Fail to generate voronoi diagram." << std::endl;
         }
     }
@@ -235,7 +235,7 @@ namespace multibot2_server::SubgoalGenerator::PIBT
             voronoi_cell_w_no_map.first = site;
             if (not(bvc_generator_->get_polygon(site, voronoi_cell_w_no_map.second)))
             {
-                std::cerr << "SubgoalGenerator::Generator::generateBVC(): "
+                std::cerr << "PIBT::Solver::generate_diagrams() "
                           << "There is no voronoi cell with no map." << std::endl;
 
                 return false;
@@ -246,7 +246,7 @@ namespace multibot2_server::SubgoalGenerator::PIBT
             voronoi_cell.first = site;
             if (not(bvc_generator_->get_polygon(site, voronoi_cell.second)))
             {
-                std::cerr << "SubgoalGenerator::Generator::generateBVC(): "
+                std::cerr << "PIBT::Solver::generate_diagrams() "
                           << "There is no voronoi cell." << std::endl;
 
                 return false;
