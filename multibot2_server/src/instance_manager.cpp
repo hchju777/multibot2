@@ -183,13 +183,27 @@ namespace multibot2_server
 
         request->name = _robotName;
 
-        if (_mode == PanelUtil::Mode::REMOTE)
-            request->is_remote = true;
-        else if (_mode == PanelUtil::Mode::MANUAL)
-            request->is_remote = false;
-        else
-        {
-        }
+        switch (_mode)
+		{
+		case PanelUtil::Mode::REMOTE:
+			request->mode = "REMOTE";
+			break;
+
+		case PanelUtil::Mode::MANUAL:
+			request->mode = "MANUAL";
+			break;
+
+		case PanelUtil::Mode::AUTO:
+			request->mode = "AUTO";
+			break;
+
+		case PanelUtil::Mode::STAY:
+			request->mode = "STAY";
+			break;
+
+		default:
+			break;
+		}
 
         auto response_received_callback = [this](rclcpp::Client<PanelUtil::ModeSelection>::SharedFuture _future)
         {

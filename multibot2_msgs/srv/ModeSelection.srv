@@ -1,4 +1,4 @@
 string name
-bool is_remote
+string mode
 ---
 bool is_complete

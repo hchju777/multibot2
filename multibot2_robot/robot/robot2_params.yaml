@@ -15,8 +15,12 @@
 
       type: "DiffDrive" # types: "DiffDrive" or "CarLike"
 
-      radius: 0.7
+      radius: 0.55
 
+      goal_tolerance: 0.25
+
+      avoidance_dist: 2.5
+      
       velocity_profile:
         max_vel_x: 0.3
         max_vel_theta: 0.2

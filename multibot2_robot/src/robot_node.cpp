@@ -69,29 +69,66 @@ namespace multibot2_robot
 
     void MultibotRobot::auto_control()
     {
-        if (not(panel_is_running_))
-            return;
+        static std::chrono::steady_clock::time_point time_point = std::chrono::steady_clock::now();
 
-        if (not(instance_manager_->robot_ros().mode() == Robot_ROS::Mode::AUTO))
+        if (not(panel_is_running_))
             return;
 
         Robot_ROS &robot_ros = instance_manager_->robot_ros();
         const Robot &robot = instance_manager_->robot();
 
+        multibot2_util::Pose subgoal_difference = robot_ros.subgoal() - robot.pose();
+        double squaredSubgoalDistance = subgoal_difference.position().squaredNorm();
+
+        static bool no_task = false;
+
+        if (robot_ros.mode() == Robot_ROS::Mode::STAY)
+        {
+            auto stay_time = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::steady_clock::now() - time_point).count();
+
+            // if (stay_time < robot_ros.task_duration())
+            if (stay_time < 3.0)
+                return;
+
+            robot_panel_->emit_mode_signal(Panel::Mode::AUTO);
+            no_task = false;
+
+            if (squaredSubgoalDistance < goal_tolerance_ * goal_tolerance_)
+            {
+                robot_ros.task_duration() = 0.0;
+                no_task = true;
+                return;
+            }
+        }
+
+        if (not(robot_ros.mode() == Robot_ROS::Mode::AUTO))
+            return;
+
         geometry_msgs::msg::PoseStamped current_pose;
         robot.pose().toPoseMsg(current_pose.pose);
 
-        multibot2_util::Pose relativePose = robot_ros.subgoal() - robot.pose();
-        double squaredDistance = relativePose.position().squaredNorm();
-
-        if (squaredDistance < goal_tolerance_ * goal_tolerance_)
+        if (squaredSubgoalDistance < goal_tolerance_ * goal_tolerance_)
         {
-            // Change Mode as manual
+            multibot2_util::Pose goal_difference = robot_ros.subgoal() - robot.goal();
+            double squaredDifference = goal_difference.position().squaredNorm();
+
+            if (not(no_task) and squaredDifference < goal_tolerance_ * goal_tolerance_)
+            {
+                robot_panel_->emit_mode_signal(Panel::Mode::STAY);
+
+                time_point = std::chrono::steady_clock::now();
+            }
+
+            robot_ros.robot().cur_vel_x() = 0.0;
+            robot_ros.robot().cur_vel_theta() = 0.0;
+
             geometry_msgs::msg::Twist zero_cmd_vel;
             robot_ros.cmd_vel_pub()->publish(zero_cmd_vel);
 
             return;
         }
+
+        no_task = false;
 
         geometry_msgs::msg::Twist current_twist;
         {
@@ -104,15 +141,18 @@ namespace multibot2_robot
 
         static geometry_msgs::msg::TwistStamped cmd_vel_2d;
 
+        geometry_msgs::msg::PoseStamped goal_pose;
+        robot_ros.subgoal().toPoseMsg(goal_pose.pose);
+
+        teb_local_planner_->setPlan(navfn_global_planner_->createPlan(current_pose, goal_pose));
+
         try
         {
             cmd_vel_2d = teb_local_planner_->computeVelocityCommands(local_current_pose, current_twist);
         }
         catch (const std::exception &e)
         {
-            geometry_msgs::msg::PoseStamped goal_pose;
-            robot_ros.subgoal().toPoseMsg(goal_pose.pose);
-
+            RCLCPP_WARN(this->get_logger(), "%s", e.what());
             teb_local_planner_->setPlan(navfn_global_planner_->createPlan(current_pose, goal_pose));
         }
 

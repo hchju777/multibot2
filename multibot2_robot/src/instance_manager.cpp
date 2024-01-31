@@ -55,6 +55,8 @@ namespace multibot2_robot
         init_variables();
         init_parameters();
 
+        robot_ros_.subgoal() = robot_ros_.robot().goal();
+
         global_costmap_ros_->activate();
         local_costmap_ros_->activate();
 
@@ -230,6 +232,8 @@ namespace multibot2_robot
         robot.goal().x() = _goal_msg->pose.position.x;
         robot.goal().y() = _goal_msg->pose.position.y;
         robot.goal().theta() = yaw;
+
+        robot_ros_.task_duration() = 0.0;
     }
 
     void Instance_Manager::subgoal_callback(const geometry_msgs::msg::PoseStamped::SharedPtr _subgoal_msg)

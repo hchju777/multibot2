@@ -54,6 +54,9 @@ namespace multibot2_robot
         inline Pose &subgoal() { return subgoal_; }
         inline const Pose &subgoal() const { return subgoal_; }
 
+        inline double &task_duration() { return task_duration_; }
+        inline const double &task_duration() const { return task_duration_; }
+
         inline Mode &mode() { return mode_; }
         inline const Mode &mode() const { return mode_; }
 
@@ -78,6 +81,8 @@ namespace multibot2_robot
     protected:
         Robot robot_;
         Pose subgoal_;
+
+        double task_duration_{0.0};
 
         Mode mode_{Mode::MANUAL};
 

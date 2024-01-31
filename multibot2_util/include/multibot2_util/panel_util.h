@@ -27,7 +27,8 @@ namespace multibot2_util::PanelUtil
     {
         REMOTE,
         MANUAL,
-        AUTO
+        AUTO,
+        STAY
     }; // enum Mode
 
     enum PlanState

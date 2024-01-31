@@ -4,8 +4,13 @@ robot:
       odom_topic: "odom"
       map_frame: "odom"
       plugin: "teb_local_planner::TebLocalPlannerROS"
-      footprint_model.type: circular
-      footprint_model.radius: 0.7
+      # footprint_model.type: circular
+      # footprint_model.radius: 0.7
+      footprint_model.type: "two_circles"
+      footprint_model.front_offset: 0.0 # for type "two_circles"
+      footprint_model.front_radius: 0.45 # for type "two_circles"
+      footprint_model.rear_offset: 0.4 # for type "two_circles"
+      footprint_model.rear_radius: 0.35 # for type "two_circles"
       min_obstacle_dist: 0.2
       inflation_dist: 0.7
       costmap_converter_plugin: "costmap_converter::CostmapToPolygonsDBSMCCH"
@@ -16,92 +21,11 @@ robot:
       optimization_verbose: False
       teb_autoresize: True
       min_samples: 3
-      max_samples: 160
-      max_global_plan_lookahead_dist: 6.0
+      max_samples: 50
+      max_global_plan_lookahead_dist: 2.5
       visualize_hc_graph: True
       max_vel_x: 0.3
       max_vel_theta: 0.2
       acc_lim_x: 2.5
       acc_lim_theta: 3.2
       allow_init_with_backwards_motion: false
-
-    # trajectory:
-    #   autosize: true
-    #   dt_ref: 0.3
-    #   dt_hysteresis: 0.1
-
-    #   min_samples: 3
-    #   max_samples: 500
-
-    #   global_plan_overwrite_orientation: true
-    #   allow_init_with_backwards_motion: false
-    #   global_plan_viapoint_sep: -1.0
-
-    #   via_points_ordered: false
-    #   max_global_plan_lookahead_dist: 1.0
-    #   global_plan_prune_distance: 1.0
-
-    #   exact_arc_length: false
-    #   force_reinit_new_goal_dist: 1.0
-    #   force_reinit_new_goal_angular: 1.570796325
-
-    #   feasibility_check_no_poses: 5
-    #   publish_feedback: false
-    #   min_resolution_collision_check_angular: 3.14159265
-
-    #   control_look_ahead_poses: 1
-
-    # goal_tolerance:
-    #   xy_goal_tolerance: 0.2
-    #   yaw_goal_tolerance: 0.2
-    #   free_goal_vel: False
-    #   complete_global_plan: True
-
-    # obstacle:
-    #   min_obstacle_dist: 0.5
-    #   inflation_dist: 0.6
-    #   dynamic_obstacle_inflation_dist: 0.6
-
-    #   include_dynamic_obstacles: True
-    #   include_costmap_obstacles: True
-
-    #   costmap_obstacles_behind_robot_dist: 1.5
-    #   obstacle_poses_affected: 25
-    #   legacy_obstacle_association: False
-
-    #   obstacle_association_force_inclusion_factor: 1.5
-    #   obstacle_association_cutoff_factor: 5.0
-      
-    #   costmap_converter_plugin: "costmap_converter::CostmapToPolygonsDBSMCCH"
-    #   costmap_converter_spin_thread: True
-    #   costmap_converter_rate: 5
-
-    # optimization:
-    #   no_inner_iterations: 5
-    #   no_outer_iterations: 4
-
-    #   optimization_activate: True
-    #   optimization_verbose: False
-
-    #   penalty_epsilon: 0.05
-
-    #   weight_max_vel_x: 2.0
-    #   weight_max_vel_y: 2.0
-    #   weight_max_vel_theta: 1.0
-    #   weight_acc_lim_x: 1.0
-    #   weight_acc_lim_y: 1.0
-    #   weight_acc_lim_theta: 1.0
-    #   weight_kinematics_nh: 1000.0
-    #   weight_kinematics_forward_drive: 1.0
-    #   weight_kinematics_turning_radius: 1.0
-    #   weight_optimaltime: 1.0
-    #   weight_shortest_path: 0.0
-    #   weight_obstacle: 50.0
-    #   weight_inflation: 0.1
-    #   weight_dynamic_obstacle: 50.0
-    #   weight_dynamic_obstacle_inflation: 0.1
-    #   weight_viapoint: 1.0
-    #   weight_prefer_rotdir: 50.0
-
-    #   weight_adapt_factor: 2.0
-    #   obstacle_cost_exponent: 1.0

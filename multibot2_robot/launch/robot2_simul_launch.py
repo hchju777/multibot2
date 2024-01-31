@@ -150,7 +150,8 @@ def generate_launch_description():
             'max_vel_x': str(robot_params['velocity_profile']['max_vel_x']),
             'max_vel_theta': str(robot_params['velocity_profile']['max_vel_theta']),
             'acc_lim_x': str(robot_params['velocity_profile']['acc_lim_x']),
-            'acc_lim_theta': str(robot_params['velocity_profile']['acc_lim_theta'])
+            'acc_lim_theta': str(robot_params['velocity_profile']['acc_lim_theta']),
+            'max_global_plan_lookahead_dist': str(robot_params['avoidance_dist'])
         },
         convert_types=True
     )
