@@ -76,7 +76,10 @@ def generate_launch_description():
         param_rewrites={
             'base_frame_id':   robot_params['name'] + '/' + robot_params['odometry']['child_frame_id'],
             'odom_frame_id':   robot_params['name'] + '/' + robot_params['odometry']['frame_id'],
-            'scan_topic': '/'+ robot_params['name'] + '/' + robot_params['laser']['scan_topic']
+            'scan_topic': '/'+ robot_params['name'] + '/' + robot_params['laser']['scan_topic'],
+            'x': str(robot_params['spawn']['x']),
+            'y': str(robot_params['spawn']['y']),
+            'yaw': str(robot_params['spawn']['theta'])
         },
         convert_types=True
     )
