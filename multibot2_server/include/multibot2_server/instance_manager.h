@@ -3,6 +3,9 @@
 #include <memory>
 #include <map>
 
+#include <filesystem>
+#include <yaml-cpp/yaml.h>
+
 #include <nav2_util/lifecycle_node.hpp>
 
 #include <nav2_costmap_2d/costmap_2d_ros.hpp>
@@ -19,6 +22,7 @@
 #include <std_msgs/msg/bool.hpp>
 
 #include "multibot2_msgs/msg/robot_state.hpp"
+#include "multibot2_msgs/msg/task.hpp"
 
 using namespace multibot2_util;
 
@@ -27,6 +31,7 @@ namespace multibot2_server
     struct Robot_ROS
     {
         typedef multibot2_msgs::msg::RobotState State;
+        typedef multibot2_msgs::msg::Task Task;
 
         Robot robot_;
         int32_t id_;
@@ -40,6 +45,7 @@ namespace multibot2_server
         rclcpp_lifecycle::LifecyclePublisher<std_msgs::msg::Bool>::SharedPtr kill_robot_cmd_;
         rclcpp_lifecycle::LifecyclePublisher<geometry_msgs::msg::PoseWithCovarianceStamped>::SharedPtr initialpose_pub_;
         rclcpp_lifecycle::LifecyclePublisher<geometry_msgs::msg::PoseStamped>::SharedPtr goal_pose_pub_;
+        rclcpp_lifecycle::LifecyclePublisher<Task>::SharedPtr task_pub_;
         rclcpp::Client<PanelUtil::ModeSelection>::SharedPtr modeFromServer_;
         rclcpp::Service<PanelUtil::ModeSelection>::SharedPtr modeFromRobot_;
     }; // struct Robot_ROS
@@ -75,6 +81,8 @@ namespace multibot2_server
 
         void init_global_planner();
 
+        bool load_tasks();
+
     public:
         void insertRobot(const Robot_ROS &_robot);
 
@@ -101,6 +109,14 @@ namespace multibot2_server
 
         void robotState_callback(const Robot_ROS::State::SharedPtr _state_msg);
 
+        void update()
+        {
+            update_goals();
+            update_neighbors();
+        }
+
+        void update_goals();
+
         void update_neighbors();
 
     protected:
@@ -109,6 +125,8 @@ namespace multibot2_server
 
     protected:
         std::map<std::string, Robot_ROS> robots_;
+
+        std::map<std::string, std::queue<Robot::Task>> tasks_;
 
         std::shared_ptr<nav2_costmap_2d::Costmap2DROS> global_costmap_ros_;
         std::unique_ptr<nav2_util::NodeThread> global_costmap_thread_;

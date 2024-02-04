@@ -15,10 +15,12 @@ namespace multibot2_server
         convert_map_to_polygons();
         init_global_planner();
 
-        update_timer_ = nh_->create_wall_timer(
-            10ms, std::bind(&Instance_Manager::update_neighbors, this));
+        load_tasks();
 
-        std::cout << "Instance Manager has been initialzied" << std::endl;
+        update_timer_ = nh_->create_wall_timer(
+            10ms, std::bind(&Instance_Manager::update, this));
+
+        RCLCPP_INFO(nh_->get_logger(), "Instance Manager has been initialzied");
     }
 
     void Instance_Manager::init_variables()
@@ -51,13 +53,58 @@ namespace multibot2_server
         navfn_global_planner_->activate();
     }
 
-    void Instance_Manager::convert_map_to_polygons()
+    bool Instance_Manager::load_tasks()
     {
-        std::shared_ptr<costmap_converter::CostmapToPolygonsDBSMCCH> costmap_converter = std::make_shared<costmap_converter::CostmapToPolygonsDBSMCCH>();
-        costmap_converter->setCostmap2D(global_costmap_ros_->getCostmap());
-        costmap_converter->compute();
+        YAML::Node node;
 
-        static_obstacles_ = costmap_converter->getPolygons();
+        try
+        {
+            std::string maps_fPath = std::filesystem::current_path().generic_string() + "/src/multibot2/multibot2_server/maps/";
+
+            std::string map_server_params_fPath = std::filesystem::current_path().generic_string() + "/src/multibot2/multibot2_server/params/map_server_params.yaml";
+            YAML::Node map_server_params = YAML::LoadFile(map_server_params_fPath);
+
+            std::string map_name = map_server_params["map_server"]["ros__parameters"]["map"].as<std::string>();
+            std::string task_fPath = maps_fPath + map_name + "/" + "task.yaml";
+
+            node = YAML::LoadFile(task_fPath);
+        }
+        catch (const YAML::BadFile &_err_BadFile)
+        {
+            RCLCPP_ERROR(nh_->get_logger(), "Instance_Manager::load_tasks(): %s", _err_BadFile.what());
+            return false;
+        }
+        catch (const YAML::ParserException &_err_ParserException)
+        {
+            RCLCPP_ERROR(nh_->get_logger(), "Instance_Manager::load_tasks(): %s", _err_ParserException.what());
+            return false;
+        }
+
+        try
+        {
+            for (const auto &robot_tasks : node)
+            {
+                std::string name = robot_tasks["name"].as<std::string>();
+
+                std::queue<Robot::Task> task_queue;
+                for (const auto &task : robot_tasks["task_queue"])
+                {
+                    std::vector<double> location = task["location"].as<std::vector<double>>();
+                    double duration = task["duration"].as<double>();
+
+                    task_queue.emplace(Pose(location), duration);
+                }
+
+                tasks_.emplace(name, task_queue);
+            }
+
+            return true;
+        }
+        catch (const YAML::ParserException &_err_ParserException)
+        {
+            std::cerr << "[Error] RoadMap::saveVertices(): " << _err_ParserException.what() << std::endl;
+            return false;
+        }
     }
 
     void Instance_Manager::insertRobot(const Robot_ROS &_robot_ros)
@@ -88,7 +135,27 @@ namespace multibot2_server
             robot_ros.goal_pose_pub_ = nh_->create_publisher<geometry_msgs::msg::PoseStamped>(
                 "/" + robotName + "/goal_pose", qos);
             robot_ros.goal_pose_pub_->on_activate();
+            robot_ros.task_pub_ = nh_->create_publisher<Robot_ROS::Task>(
+                "/" + robotName + "/task", qos);
+            robot_ros.task_pub_->on_activate();
         }
+
+        if (tasks_.contains(robotName))
+        {
+            robot_ros.robot_.task_queue() = tasks_[robotName];
+            robot_ros.robot_.goal_queue() = tasks_[robotName];
+
+            robot_ros.robot_.goal() = tasks_[robotName].front().loc();
+
+            Robot_ROS::Task task;
+            {
+                robot_ros.robot_.goal().toPoseMsg(task.location.pose);
+                task.duration = robot_ros.robot_.task_queue().front().duration();
+            }
+
+            robot_ros.task_pub_->publish(task);
+        }
+
         robots_.insert(std::make_pair(robotName, robot_ros));
 
         RCLCPP_INFO(nh_->get_logger(), "Instance_Manager::insertRobot()");
@@ -184,26 +251,26 @@ namespace multibot2_server
         request->name = _robotName;
 
         switch (_mode)
-		{
-		case PanelUtil::Mode::REMOTE:
-			request->mode = "REMOTE";
-			break;
+        {
+        case PanelUtil::Mode::REMOTE:
+            request->mode = "REMOTE";
+            break;
 
-		case PanelUtil::Mode::MANUAL:
-			request->mode = "MANUAL";
-			break;
+        case PanelUtil::Mode::MANUAL:
+            request->mode = "MANUAL";
+            break;
 
-		case PanelUtil::Mode::AUTO:
-			request->mode = "AUTO";
-			break;
+        case PanelUtil::Mode::AUTO:
+            request->mode = "AUTO";
+            break;
 
-		case PanelUtil::Mode::STAY:
-			request->mode = "STAY";
-			break;
+        case PanelUtil::Mode::STAY:
+            request->mode = "STAY";
+            break;
 
-		default:
-			break;
-		}
+        default:
+            break;
+        }
 
         auto response_received_callback = [this](rclcpp::Client<PanelUtil::ModeSelection>::SharedFuture _future)
         {
@@ -251,6 +318,15 @@ namespace multibot2_server
             robots_[_robotName].goal_pose_pub_->publish(_goal_msg);
     }
 
+    void Instance_Manager::convert_map_to_polygons()
+    {
+        std::shared_ptr<costmap_converter::CostmapToPolygonsDBSMCCH> costmap_converter = std::make_shared<costmap_converter::CostmapToPolygonsDBSMCCH>();
+        costmap_converter->setCostmap2D(global_costmap_ros_->getCostmap());
+        costmap_converter->compute();
+
+        static_obstacles_ = costmap_converter->getPolygons();
+    }
+
     void Instance_Manager::robotState_callback(const Robot_ROS::State::SharedPtr _state_msg)
     {
         auto &robot_ros = robots_[_state_msg->name];
@@ -268,6 +344,48 @@ namespace multibot2_server
 
         robot_ros.robot_.cur_vel_x() = _state_msg->lin_vel;
         robot_ros.robot_.cur_vel_theta() = _state_msg->ang_vel;
+
+        robot_ros.robot_.arrived() = _state_msg->arrived;
+    }
+
+    void Instance_Manager::update_goals()
+    {
+        std::map<std::string, Robot_ROS> robots = robots_;
+
+        for (auto &robotPair : robots)
+        {
+            Robot &robot = robotPair.second.robot_;
+
+            if (not(robot.arrived()))
+                continue;
+
+            double SquaredDistance = (robot.goal() - robot.pose()).position().squaredNorm();
+            if (SquaredDistance > 0.25 * 0.25)
+                continue;
+
+            if (tasks_[robot.name()].empty() or robot.task_queue().empty() or robot.goal_queue().empty())
+                continue;
+
+            robot = robots_[robot.name()].robot_;
+
+            tasks_[robot.name()].pop();
+            robot.task_queue().pop();
+            robot.goal_queue().pop();
+
+            if (robot.goal_queue().empty())
+                continue;
+
+            robot.goal() = robot.goal_queue().front().loc();
+            std::cout << robot.goal() << std::endl;
+
+            Robot_ROS::Task task;
+            {
+                robot.goal().toPoseMsg(task.location.pose);
+                task.duration = robot.goal_queue().front().duration();
+            }
+
+            robots_[robot.name()].task_pub_->publish(task);
+        }
     }
 
     void Instance_Manager::update_neighbors()

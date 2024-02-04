@@ -9,6 +9,9 @@ namespace multibot2_server
 
         neighbors_ = _robot.neighbors_;
         VOCones_ = _robot.VOCones_;
+
+        task_queue_ = _robot.task_queue_;
+        goal_queue_ = _robot.goal_queue_;
     }
 
     Robot &Robot::operator=(const Robot &_rhs)
@@ -21,6 +24,9 @@ namespace multibot2_server
 
             neighbors_ = _rhs.neighbors_;
             VOCones_ = _rhs.VOCones_;
+
+            task_queue_ = _rhs.task_queue_;
+            goal_queue_ = _rhs.goal_queue_;
         }
 
         return *this;
@@ -37,5 +43,9 @@ namespace multibot2_server
 
         neighbors_.swap(empty_neighbors);
         VOCones_.swap(empty_VOCones);
+
+        task_queue_ = std::queue<Task>();
+        goal_queue_ = std::queue<Task>();
+
     }
 } // namespace multibot2_server

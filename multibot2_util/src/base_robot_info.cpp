@@ -19,6 +19,8 @@ namespace multibot2_util
 
         cur_vel_x_ = _baseRobotInfo.cur_vel_x_;
         cur_vel_theta_ = _baseRobotInfo.cur_vel_theta_;
+
+        arrived_ = _baseRobotInfo.arrived_;
     }
 
     BaseRobotInfo &BaseRobotInfo::operator=(const BaseRobotInfo &_rhs)
@@ -40,6 +42,8 @@ namespace multibot2_util
 
             cur_vel_x_ = _rhs.cur_vel_x_;
             cur_vel_theta_ = _rhs.cur_vel_theta_;
+
+            arrived_ = _rhs.arrived_;
         }
 
         return *this;

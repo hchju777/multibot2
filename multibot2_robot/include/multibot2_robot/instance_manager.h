@@ -21,6 +21,7 @@
 #include <nav_msgs/msg/path.hpp>
 
 #include "multibot2_msgs/msg/robot_state.hpp"
+#include "multibot2_msgs/msg/task.hpp"
 
 namespace multibot2_robot
 {
@@ -32,6 +33,7 @@ namespace multibot2_robot
         typedef multibot2_util::Pose Pose;
 
         typedef multibot2_msgs::msg::RobotState RobotState;
+        typedef multibot2_msgs::msg::Task Task;
         typedef multibot2_util::PanelUtil::ModeSelection ModeSelection;
         typedef multibot2_util::PanelUtil::Mode Mode;
 
@@ -69,6 +71,9 @@ namespace multibot2_robot
         inline rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr &odom_sub() { return odom_sub_; }
         inline const rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr &odom_sub() const { return odom_sub_; }
 
+        inline rclcpp::Subscription<Task>::SharedPtr &task_sub() { return task_sub_; }
+        inline const rclcpp::Subscription<Task>::SharedPtr &task_sub() const { return task_sub_; }
+
         inline rclcpp::Subscription<geometry_msgs::msg::PoseStamped>::SharedPtr &goal_sub() { return goal_sub_; }
         inline const rclcpp::Subscription<geometry_msgs::msg::PoseStamped>::SharedPtr &goal_sub() const { return goal_sub_; }
 
@@ -92,6 +97,8 @@ namespace multibot2_robot
         rclcpp_lifecycle::LifecyclePublisher<geometry_msgs::msg::Twist>::SharedPtr cmd_vel_pub_;
 
         rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr odom_sub_;
+
+        rclcpp::Subscription<Task>::SharedPtr task_sub_;
 
         rclcpp::Subscription<geometry_msgs::msg::PoseStamped>::SharedPtr goal_sub_;
 
@@ -143,6 +150,8 @@ namespace multibot2_robot
 
     protected:
         void odom_callback(const nav_msgs::msg::Odometry::SharedPtr _odom_msg);
+
+        void task_callback(const Robot_ROS::Task::SharedPtr _task_msg);
 
         void goal_callback(const geometry_msgs::msg::PoseStamped::SharedPtr _goal_msg);
 

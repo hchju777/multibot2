@@ -75,7 +75,9 @@ namespace multibot2_robot
             return;
 
         Robot_ROS &robot_ros = instance_manager_->robot_ros();
-        const Robot &robot = instance_manager_->robot();
+        Robot &robot = instance_manager_->robot();
+
+        robot.arrived() = false;
 
         multibot2_util::Pose subgoal_difference = robot_ros.subgoal() - robot.pose();
         double squaredSubgoalDistance = subgoal_difference.position().squaredNorm();
@@ -86,9 +88,11 @@ namespace multibot2_robot
         {
             auto stay_time = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::steady_clock::now() - time_point).count();
 
-            // if (stay_time < robot_ros.task_duration())
-            if (stay_time < 3.0)
+            if (stay_time < robot_ros.task_duration())
+            {
+                robot.arrived() = true;
                 return;
+            }
 
             robot_panel_->emit_mode_signal(Panel::Mode::AUTO);
             no_task = false;
@@ -115,6 +119,8 @@ namespace multibot2_robot
             if (not(no_task) and squaredDifference < goal_tolerance_ * goal_tolerance_)
             {
                 robot_panel_->emit_mode_signal(Panel::Mode::STAY);
+
+                robot.arrived() = true;
 
                 time_point = std::chrono::steady_clock::now();
             }

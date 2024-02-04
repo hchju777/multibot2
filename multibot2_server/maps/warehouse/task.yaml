@@ -1,0 +1,13 @@
+- name: Robot1
+  task_queue:
+    - location: [15.1, 6.5, 0.0]
+      duration: 3.0
+    - location: [10.2, 6.3, 3.14]
+      duration: 3.0
+
+- name: Robot2
+  task_queue:
+    - location: [10.2, 6.3, 3.14]
+      duration: 3.0
+    - location: [15.6, 6.3, 0.0]
+      duration: 3.0

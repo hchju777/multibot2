@@ -38,6 +38,7 @@ set(msg_files
   "msg/FeedbackMsg.msg"
   "msg/RobotConfig.msg"
   "msg/RobotState.msg"
+  "msg/Task.msg"
   "msg/TrajectoryMsg.msg"
   "msg/TrajectoryPointMsg.msg"
 )

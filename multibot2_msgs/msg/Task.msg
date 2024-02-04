@@ -1,0 +1,2 @@
+geometry_msgs/PoseStamped location
+float32 duration

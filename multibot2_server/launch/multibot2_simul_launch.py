@@ -22,7 +22,8 @@ def generate_launch_description():
         robot_common_config = yaml.load(robot_common_config, Loader=yaml.Loader)
         robot_common_config = robot_common_config['/**']['ros__parameters']['robot']
     
-    robots = ["robot1", "robot2"]
+    robots = ["robot1"]
+    # robots = ["robot1", "robot2"]
     
     multibot2_robot_cmds = []        
     for robot in robots:

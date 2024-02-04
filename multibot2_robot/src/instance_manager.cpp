@@ -17,6 +17,8 @@ namespace multibot2_robot
 
         odom_sub_ = _robot_ros.odom_sub_;
 
+        task_sub_ = _robot_ros.task_sub_;
+
         goal_sub_ = _robot_ros.goal_sub_;
 
         subgoal_sub_ = _robot_ros.subgoal_sub_;
@@ -38,6 +40,8 @@ namespace multibot2_robot
             cmd_vel_pub_ = _rhs.cmd_vel_pub_;
 
             odom_sub_ = _rhs.odom_sub_;
+
+            task_sub_ = _rhs.task_sub_;
 
             goal_sub_ = _rhs.goal_sub_;
 
@@ -73,6 +77,10 @@ namespace multibot2_robot
         robot_ros_.odom_sub() = nh_->create_subscription<nav_msgs::msg::Odometry>(
             std::string{nh_->get_namespace()} + "/odom", qos,
             std::bind(&Instance_Manager::odom_callback, this, std::placeholders::_1));
+
+        robot_ros_.task_sub() = nh_->create_subscription<Robot_ROS::Task>(
+            std::string{nh_->get_namespace()} + "/task", qos,
+            std::bind(&Instance_Manager::task_callback, this, std::placeholders::_1));
 
         robot_ros_.goal_sub() = nh_->create_subscription<geometry_msgs::msg::PoseStamped>(
             std::string{nh_->get_namespace()} + "/goal_pose", qos,
@@ -199,12 +207,14 @@ namespace multibot2_robot
 
             state.lin_vel = robot.cur_vel_x();
             state.ang_vel = robot.cur_vel_theta();
+
+            state.arrived = robot.arrived();
         }
 
         robot_ros_.state_pub()->publish(state);
     }
 
-     void Instance_Manager::odom_callback(const nav_msgs::msg::Odometry::SharedPtr _odom_msg)
+    void Instance_Manager::odom_callback(const nav_msgs::msg::Odometry::SharedPtr _odom_msg)
     {
         if (robot_ros_.mode() == Robot_ROS::Mode::MANUAL)
             return;
@@ -213,6 +223,16 @@ namespace multibot2_robot
 
         robot.cur_vel_x() = _odom_msg->twist.twist.linear.x;
         robot.cur_vel_theta() = _odom_msg->twist.twist.angular.z;
+    }
+
+    void Instance_Manager::task_callback(const Robot_ROS::Task::SharedPtr _task_msg)
+    {
+        Robot &robot = robot_ros_.robot();
+
+        robot.goal() = multibot2_util::Pose(_task_msg->location);
+        robot_ros_.subgoal() = robot.goal();
+
+        robot_ros_.task_duration() = _task_msg->duration;
     }
 
     void Instance_Manager::goal_callback(const geometry_msgs::msg::PoseStamped::SharedPtr _goal_msg)
@@ -229,9 +249,7 @@ namespace multibot2_robot
 
         Robot &robot = robot_ros_.robot();
 
-        robot.goal().x() = _goal_msg->pose.position.x;
-        robot.goal().y() = _goal_msg->pose.position.y;
-        robot.goal().theta() = yaw;
+        robot.goal() = multibot2_util::Pose(_goal_msg->pose);
 
         robot_ros_.task_duration() = 0.0;
     }
@@ -248,8 +266,6 @@ namespace multibot2_robot
         double roll, pitch, yaw;
         m.getRPY(roll, pitch, yaw);
 
-        robot_ros_.subgoal().x() = _subgoal_msg->pose.position.x;
-        robot_ros_.subgoal().y() = _subgoal_msg->pose.position.y;
-        robot_ros_.subgoal().theta() = yaw;
+        robot_ros_.subgoal() = multibot2_util::Pose(_subgoal_msg->pose);
     }
 } // namespace multibot2_robot
