@@ -346,8 +346,6 @@ namespace multibot2_server
 
             _response->is_complete = true;
         }
-
-        std::cout << "End" << std::endl;
     }
 
     void Instance_Manager::subgoal_pose_pub(
