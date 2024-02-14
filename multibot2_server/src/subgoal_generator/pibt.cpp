@@ -55,7 +55,7 @@ namespace multibot2_server::SubgoalGenerator::PIBT
         return *this;
     }
 
-    void Solver::solve()
+    Robots Solver::solve()
     {
         std::set<std::string> open, close;
         for (const auto &robotPair : robots_)
@@ -74,6 +74,8 @@ namespace multibot2_server::SubgoalGenerator::PIBT
             priority_list_.remove_if([&open](std::string _robotName)
                                      { return not(open.contains(_robotName)); });
         }
+
+        return robots_;
     }
 
     bool Solver::priorityInheritance(

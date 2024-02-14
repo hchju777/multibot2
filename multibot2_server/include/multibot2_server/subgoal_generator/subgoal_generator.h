@@ -1,6 +1,7 @@
 #pragma once
 
 #include <memory>
+#include <future>
 
 #include <nav2_costmap_2d/costmap_2d_ros.hpp>
 #include <nav2_costmap_2d/cost_values.hpp>

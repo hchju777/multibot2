@@ -137,11 +137,19 @@ namespace multibot2_server::SubgoalGenerator
 
     void Generator::find_subgoals()
     {
+        std::vector<std::future<Robots>> multiThread;
+        multiThread.clear();
+
         for (const auto &solver : solvers_)
         {
-            solver->solve();
+            multiThread.push_back(
+                std::async(std::launch::async, [this, solver]()
+                           { return solver->solve(); }));
+        }
 
-            for (const auto &robotPair : solver->robots())
+        for (auto &singleThread : multiThread)
+        {
+            for (const auto &robotPair : singleThread.get())
             {
                 std::string robotName = robotPair.first;
                 Robot robot = robotPair.second;
