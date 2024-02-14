@@ -71,7 +71,7 @@ namespace multibot2_server
 
     void MultibotServer::update_subgoals()
     {
-        if (instance_manager_->robots().size() < 2)
+        if (instance_manager_->robots().empty())
             return;
 
         std::map<std::string, Robot> robots;

@@ -23,6 +23,7 @@
 #include "multibot2_msgs/msg/robot_state.hpp"
 #include "multibot2_msgs/msg/task.hpp"
 #include "multibot2_msgs/msg/neighbors.hpp"
+#include "multibot2_msgs/srv/queue_rivision.hpp"
 
 namespace multibot2_robot
 {
@@ -37,6 +38,7 @@ namespace multibot2_robot
         typedef multibot2_msgs::msg::Task Task;
         typedef multibot2_msgs::msg::Neighbor Neighbor;
         typedef multibot2_msgs::msg::Neighbors Neighbors;
+        typedef multibot2_msgs::srv::QueueRivision QueueRivision;
         typedef multibot2_util::PanelUtil::ModeSelection ModeSelection;
         typedef multibot2_util::PanelUtil::Mode Mode;
 
@@ -89,6 +91,9 @@ namespace multibot2_robot
         inline rclcpp::Subscription<Neighbors>::SharedPtr &neighbors_sub() { return neighbors_sub_; }
         inline const rclcpp::Subscription<Neighbors>::SharedPtr &neighbors_sub() const { return neighbors_sub_; }
 
+        inline rclcpp::Client<Robot_ROS::QueueRivision>::SharedPtr &queue_revision() { return queue_revision_; }
+        inline const rclcpp::Client<Robot_ROS::QueueRivision>::SharedPtr &queue_revision() const { return queue_revision_; }
+
         inline rclcpp_lifecycle::LifecyclePublisher<nav_msgs::msg::Path>::SharedPtr &rviz_path_pub() { return rviz_path_pub_; }
         inline const rclcpp_lifecycle::LifecyclePublisher<nav_msgs::msg::Path>::SharedPtr &rviz_path_pub() const { return rviz_path_pub_; }
 
@@ -116,6 +121,8 @@ namespace multibot2_robot
         rclcpp::Subscription<geometry_msgs::msg::PoseStamped>::SharedPtr subgoal_sub_;
 
         rclcpp::Subscription<Neighbors>::SharedPtr neighbors_sub_;
+
+        rclcpp::Client<Robot_ROS::QueueRivision>::SharedPtr queue_revision_;
 
         rclcpp_lifecycle::LifecyclePublisher<nav_msgs::msg::Path>::SharedPtr rviz_path_pub_;
     }; // struct Robot_ROS

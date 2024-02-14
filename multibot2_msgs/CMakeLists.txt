@@ -50,6 +50,7 @@ set(srv_files
   "srv/Disconnection.srv"
   "srv/DriverCommand.srv"
   "srv/ModeSelection.srv"
+  "srv/QueueRivision.srv"
 )
 
 rosidl_generate_interfaces(${PROJECT_NAME}

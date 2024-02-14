@@ -144,6 +144,9 @@ namespace multibot2_server
             robot_ros.neighbors_pub_ = nh_->create_publisher<Robot_ROS::Neighbors>(
                 "/" + robotName + "/neighbors", qos);
             robot_ros.neighbors_pub_->on_activate();
+            robot_ros.queue_revision_ = nh_->create_service<Robot_ROS::QueueRivision>(
+                "/" + robotName + "/queue_revision",
+                std::bind(&Instance_Manager::queue_revision, this, std::placeholders::_1, std::placeholders::_2));
         }
 
         if (tasks_.contains(robotName))
@@ -322,6 +325,29 @@ namespace multibot2_server
     {
         if (robots_.contains(_robotName))
             robots_[_robotName].goal_pose_pub_->publish(_goal_msg);
+    }
+
+    void Instance_Manager::queue_revision(const std::shared_ptr<Robot_ROS::QueueRivision::Request> _request,
+                                          std::shared_ptr<Robot_ROS::QueueRivision::Response> _response)
+    {
+        _response->is_complete = false;
+
+        std::string robotName = _request->name;
+        if (robots_.contains(robotName))
+        {
+            Robot_ROS &robot_ros = robots_[robotName];
+
+            std::queue<Robot::Task> new_queue = std::queue<Robot::Task>();
+            new_queue.emplace(Pose(_request->pose), 0.0);
+
+            tasks_[robot_ros.robot_.name()] = new_queue;
+            robot_ros.robot_.task_queue() = new_queue;
+            robot_ros.robot_.goal_queue() = new_queue;
+
+            _response->is_complete = true;
+        }
+
+        std::cout << "End" << std::endl;
     }
 
     void Instance_Manager::subgoal_pose_pub(

@@ -25,6 +25,8 @@ namespace multibot2_robot
 
         neighbors_sub_ = _robot_ros.neighbors_sub_;
 
+        queue_revision_ = _robot_ros.queue_revision_;
+
         rviz_path_pub_ = _robot_ros.rviz_path_pub_;
     }
 
@@ -50,6 +52,8 @@ namespace multibot2_robot
             subgoal_sub_ = _rhs.subgoal_sub_;
 
             neighbors_sub_ = _rhs.neighbors_sub_;
+
+            queue_revision_ = _rhs.queue_revision_;
 
             rviz_path_pub_ = _rhs.rviz_path_pub_;
         }
@@ -97,6 +101,9 @@ namespace multibot2_robot
         robot_ros_.neighbors_sub() = nh_->create_subscription<Robot_ROS::Neighbors>(
             std::string{nh_->get_namespace()} + "/neighbors", qos,
             std::bind(&Instance_Manager::neighbors_callback, this, std::placeholders::_1));
+
+        robot_ros_.queue_revision() = nh_->create_client<Robot_ROS::QueueRivision>(
+            std::string{nh_->get_namespace()} + "/queue_revision");
 
         robot_ros_.rviz_path_pub() = nh_->create_publisher<nav_msgs::msg::Path>(
             std::string{nh_->get_namespace()} + "/rviz_traj", qos);
@@ -245,6 +252,12 @@ namespace multibot2_robot
 
     void Instance_Manager::goal_callback(const geometry_msgs::msg::PoseStamped::SharedPtr _goal_msg)
     {
+        if (robot_ros_.mode() != Robot_ROS::Mode::AUTO and
+            robot_ros_.mode() != Robot_ROS::Mode::STAY)
+        {
+            return;
+        }
+
         tf2::Quaternion q(
             _goal_msg->pose.orientation.x,
             _goal_msg->pose.orientation.y,
@@ -260,6 +273,32 @@ namespace multibot2_robot
         robot.goal() = multibot2_util::Pose(_goal_msg->pose);
 
         robot_ros_.task_duration() = 0.0;
+
+        while (not(robot_ros_.queue_revision()->wait_for_service(1s)))
+        {
+            if (not(rclcpp::ok()))
+            {
+                RCLCPP_ERROR(nh_->get_logger(), "Interrupted while waiting for the service.");
+                return;
+            }
+            RCLCPP_ERROR(nh_->get_logger(), "Connection not available, waiting again...");
+        }
+
+        auto request = std::make_shared<Robot_ROS::QueueRivision::Request>();
+
+        request->name = robot.name();
+        request->pose = *_goal_msg;
+
+        auto response_received_callback = [this](rclcpp::Client<Robot_ROS::QueueRivision>::SharedFuture _future)
+        {
+            auto response = _future.get();
+            return;
+        };
+
+        auto future_result =
+            robot_ros_.queue_revision()->async_send_request(request, response_received_callback);
+
+        return;
     }
 
     void Instance_Manager::subgoal_callback(const geometry_msgs::msg::PoseStamped::SharedPtr _subgoal_msg)
