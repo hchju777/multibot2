@@ -26,6 +26,8 @@ namespace multibot2_util
             theta_ = _pose.theta_;
         }
 
+        Pose(std::vector<double> _pose) : Pose(_pose.at(0), _pose.at(1), _pose.at(2)) {}
+
         Pose(double _x, double _y, double _theta)
         {
             position_.coeffRef(0) = _x;

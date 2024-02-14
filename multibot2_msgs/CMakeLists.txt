@@ -36,8 +36,11 @@ set(dependencies
 set(msg_files
   "msg/DriverStatusStamped.msg"
   "msg/FeedbackMsg.msg"
+  "msg/Neighbor.msg"
+  "msg/Neighbors.msg"
   "msg/RobotConfig.msg"
   "msg/RobotState.msg"
+  "msg/Task.msg"
   "msg/TrajectoryMsg.msg"
   "msg/TrajectoryPointMsg.msg"
 )
@@ -47,6 +50,7 @@ set(srv_files
   "srv/Disconnection.srv"
   "srv/DriverCommand.srv"
   "srv/ModeSelection.srv"
+  "srv/QueueRivision.srv"
 )
 
 rosidl_generate_interfaces(${PROJECT_NAME}

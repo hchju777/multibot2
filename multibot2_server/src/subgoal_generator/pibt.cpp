@@ -55,7 +55,7 @@ namespace multibot2_server::SubgoalGenerator::PIBT
         return *this;
     }
 
-    void Solver::solve()
+    Robots Solver::solve()
     {
         std::set<std::string> open, close;
         for (const auto &robotPair : robots_)
@@ -74,6 +74,8 @@ namespace multibot2_server::SubgoalGenerator::PIBT
             priority_list_.remove_if([&open](std::string _robotName)
                                      { return not(open.contains(_robotName)); });
         }
+
+        return robots_;
     }
 
     bool Solver::priorityInheritance(
@@ -255,11 +257,15 @@ namespace multibot2_server::SubgoalGenerator::PIBT
             {
                 std::cerr << "PIBT::Solver::generate_diagrams() "
                           << "There is no voronoi cell." << std::endl;
+
+                continue;
             }
 
             VoronoiCell buffered_voronoi_cell = voronoi_cell;
-            if (not(bvc_generator_->convert_to_bvc(site, robot.radius(), buffered_voronoi_cell.second)))
-                continue;
+            // Todo: CGAL polygon offset function doesn't work in some cases. Need to fix or replace.
+            // if (not(bvc_generator_->convert_to_bvc(site, robot.radius(), buffered_voronoi_cell.second)))
+            //     continue;
+            // std::cout << "\t\t\t\tbvc_generator_->convert_to_bvc()" << std::endl;
             buffered_voronoi_diagram_.emplace(robot.name(), buffered_voronoi_cell);
         }
 

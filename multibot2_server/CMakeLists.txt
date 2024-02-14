@@ -48,6 +48,8 @@ find_package(gazebo_ros REQUIRED)
 find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets)
 find_package(CGAL REQUIRED)
 
+find_package(yaml-cpp REQUIRED)
+
 ################################################################################
 # Build
 ################################################################################
@@ -83,12 +85,13 @@ add_library(${library_name} SHARED
   ${PANEL_HEADER_FILE}
 )
 
-set(EXTERNAL_LIBS ${CGAL_LIBRARIES} Qt6::Widgets)
+set(EXTERNAL_LIBS ${CGAL_LIBRARIES} ${YAML_CPP_LIBRARIES} Qt6::Widgets)
 
 target_include_directories(${library_name} PUBLIC
   ${Qt6Core_INCLUDE_DIRS}
   ${Qt6Widgets_INCLUDE_DIRS}
   ${OGRE_INCLUDE_DIRS}
+  ${YAML_CPP_INCUDE_DIRS}
 )
 
 ament_target_dependencies(${library_name}

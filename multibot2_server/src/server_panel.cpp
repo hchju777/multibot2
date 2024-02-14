@@ -80,6 +80,14 @@ namespace multibot2_server
             break;
         }
 
+        case PanelUtil::Mode::STAY:
+        {
+            ui_->pushButton_Mode->setText(QString::fromStdString("Stay"));
+            ui_->pushButton_Mode->setStyleSheet(
+                "color: rgb(0, 255, 153);\nborder: 2px solid rgb(0, 255, 153);\nborder-radius: 15px");
+            break;
+        }
+
         default:
             break;
         }
@@ -112,10 +120,19 @@ namespace multibot2_server
 
     void Panel::on_Start_clicked()
     {
-        if (not(planState_ == PanelUtil::PlanState::SUCCESS))
-            return;
-
         planState_ = PanelUtil::PlanState::READY;
+
+        for (const auto &robotPair : instance_manager_->robots())
+        {
+            const Robot_ROS &robot_ros = robotPair.second;
+
+            if (robot_ros.mode_ == PanelUtil::Mode::AUTO or
+                robot_ros.mode_ == PanelUtil::Mode::STAY)
+            {
+                continue;
+            }
+            instance_manager_->request_modeChange(robotPair.first, PanelUtil::Mode::AUTO);
+        }
 
         msg_ = PanelUtil::Request::START_REQUEST;
         notify();
@@ -306,6 +323,14 @@ namespace multibot2_server
             ui_->pushButton_Mode->setText(QString::fromStdString("Auto"));
             ui_->pushButton_Mode->setStyleSheet(
                 "color: rgb(230, 19, 237);\nborder: 2px solid rgb(230, 19, 237);\nborder-radius: 15px");
+            break;
+        }
+
+        case PanelUtil::Mode::STAY:
+        {
+            ui_->pushButton_Mode->setText(QString::fromStdString("Stay"));
+            ui_->pushButton_Mode->setStyleSheet(
+                "color: rgb(0, 255, 153);\nborder: 2px solid rgb(0, 255, 153);\nborder-radius: 15px");
             break;
         }
 
@@ -540,10 +565,13 @@ namespace multibot2_server
         const std::shared_ptr<PanelUtil::ModeSelection::Request> _request,
         std::shared_ptr<PanelUtil::ModeSelection::Response> _response)
     {
-        if (_request->is_remote == true)
-            instance_manager_->setMode(_request->name, PanelUtil::Mode::REMOTE);
-        else
-            instance_manager_->setMode(_request->name, PanelUtil::Mode::MANUAL);
+        std::map<std::string, PanelUtil::Mode> mode_hashmap = {
+            {"REMOTE", PanelUtil::Mode::REMOTE},
+            {"MANUAL", PanelUtil::Mode::MANUAL},
+            {"AUTO", PanelUtil::Mode::AUTO},
+            {"STAY", PanelUtil::Mode::STAY}};
+
+        instance_manager_->setMode(_request->name, mode_hashmap[_request->mode]);
 
         _response->is_complete = true;
     }

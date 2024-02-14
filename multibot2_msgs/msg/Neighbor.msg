@@ -1,0 +1,3 @@
+geometry_msgs/PoseStamped pose
+geometry_msgs/Twist velocity
+float32 radius

@@ -21,6 +21,9 @@
 #include <nav_msgs/msg/path.hpp>
 
 #include "multibot2_msgs/msg/robot_state.hpp"
+#include "multibot2_msgs/msg/task.hpp"
+#include "multibot2_msgs/msg/neighbors.hpp"
+#include "multibot2_msgs/srv/queue_rivision.hpp"
 
 namespace multibot2_robot
 {
@@ -32,6 +35,10 @@ namespace multibot2_robot
         typedef multibot2_util::Pose Pose;
 
         typedef multibot2_msgs::msg::RobotState RobotState;
+        typedef multibot2_msgs::msg::Task Task;
+        typedef multibot2_msgs::msg::Neighbor Neighbor;
+        typedef multibot2_msgs::msg::Neighbors Neighbors;
+        typedef multibot2_msgs::srv::QueueRivision QueueRivision;
         typedef multibot2_util::PanelUtil::ModeSelection ModeSelection;
         typedef multibot2_util::PanelUtil::Mode Mode;
 
@@ -54,6 +61,12 @@ namespace multibot2_robot
         inline Pose &subgoal() { return subgoal_; }
         inline const Pose &subgoal() const { return subgoal_; }
 
+        inline Neighbors &neighbors() { return neighbors_; }
+        inline const Neighbors &neighbors() const { return neighbors_; }
+
+        inline double &task_duration() { return task_duration_; }
+        inline const double &task_duration() const { return task_duration_; }
+
         inline Mode &mode() { return mode_; }
         inline const Mode &mode() const { return mode_; }
 
@@ -66,11 +79,20 @@ namespace multibot2_robot
         inline rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr &odom_sub() { return odom_sub_; }
         inline const rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr &odom_sub() const { return odom_sub_; }
 
+        inline rclcpp::Subscription<Task>::SharedPtr &task_sub() { return task_sub_; }
+        inline const rclcpp::Subscription<Task>::SharedPtr &task_sub() const { return task_sub_; }
+
         inline rclcpp::Subscription<geometry_msgs::msg::PoseStamped>::SharedPtr &goal_sub() { return goal_sub_; }
         inline const rclcpp::Subscription<geometry_msgs::msg::PoseStamped>::SharedPtr &goal_sub() const { return goal_sub_; }
 
         inline rclcpp::Subscription<geometry_msgs::msg::PoseStamped>::SharedPtr &subgoal_sub() { return subgoal_sub_; }
         inline const rclcpp::Subscription<geometry_msgs::msg::PoseStamped>::SharedPtr &subgoal_sub() const { return subgoal_sub_; }
+
+        inline rclcpp::Subscription<Neighbors>::SharedPtr &neighbors_sub() { return neighbors_sub_; }
+        inline const rclcpp::Subscription<Neighbors>::SharedPtr &neighbors_sub() const { return neighbors_sub_; }
+
+        inline rclcpp::Client<Robot_ROS::QueueRivision>::SharedPtr &queue_revision() { return queue_revision_; }
+        inline const rclcpp::Client<Robot_ROS::QueueRivision>::SharedPtr &queue_revision() const { return queue_revision_; }
 
         inline rclcpp_lifecycle::LifecyclePublisher<nav_msgs::msg::Path>::SharedPtr &rviz_path_pub() { return rviz_path_pub_; }
         inline const rclcpp_lifecycle::LifecyclePublisher<nav_msgs::msg::Path>::SharedPtr &rviz_path_pub() const { return rviz_path_pub_; }
@@ -78,6 +100,10 @@ namespace multibot2_robot
     protected:
         Robot robot_;
         Pose subgoal_;
+
+        Neighbors neighbors_;
+
+        double task_duration_{0.0};
 
         Mode mode_{Mode::MANUAL};
 
@@ -88,9 +114,15 @@ namespace multibot2_robot
 
         rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr odom_sub_;
 
+        rclcpp::Subscription<Task>::SharedPtr task_sub_;
+
         rclcpp::Subscription<geometry_msgs::msg::PoseStamped>::SharedPtr goal_sub_;
 
         rclcpp::Subscription<geometry_msgs::msg::PoseStamped>::SharedPtr subgoal_sub_;
+
+        rclcpp::Subscription<Neighbors>::SharedPtr neighbors_sub_;
+
+        rclcpp::Client<Robot_ROS::QueueRivision>::SharedPtr queue_revision_;
 
         rclcpp_lifecycle::LifecyclePublisher<nav_msgs::msg::Path>::SharedPtr rviz_path_pub_;
     }; // struct Robot_ROS
@@ -139,9 +171,13 @@ namespace multibot2_robot
     protected:
         void odom_callback(const nav_msgs::msg::Odometry::SharedPtr _odom_msg);
 
+        void task_callback(const Robot_ROS::Task::SharedPtr _task_msg);
+
         void goal_callback(const geometry_msgs::msg::PoseStamped::SharedPtr _goal_msg);
 
         void subgoal_callback(const geometry_msgs::msg::PoseStamped::SharedPtr _subgoal_msg);
+
+        void neighbors_callback(const Robot_ROS::Neighbors::SharedPtr _neighbors_msg) { robot_ros_.neighbors() = *_neighbors_msg; }
 
     protected:
         nav2_util::LifecycleNode::SharedPtr nh_;

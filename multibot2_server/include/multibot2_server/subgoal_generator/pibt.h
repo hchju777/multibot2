@@ -40,7 +40,7 @@ namespace multibot2_server::SubgoalGenerator::PIBT
         Solver &operator=(const Solver &_rhs);
 
     public:
-        void solve();
+        Robots solve();
 
     protected:
         bool priorityInheritance(

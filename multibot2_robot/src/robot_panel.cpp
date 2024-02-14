@@ -84,6 +84,13 @@ namespace multibot2_robot
 			ui_->label_Mode_State->setText("Auto");
 			ui_->label_Mode_State->setStyleSheet(
 				"color: rgb(230, 19, 237);\nborder: none");
+			break;
+
+		case Mode::STAY:
+			ui_->label_Mode_State->setText("Stay");
+			ui_->label_Mode_State->setStyleSheet(
+				"color: rgb(0, 255, 153);\nborder: none");
+			break;
 
 		default:
 			break;
@@ -203,6 +210,8 @@ namespace multibot2_robot
 		connect(displayTimer_, SIGNAL(timeout()), this, SLOT(modeDisp()));
 		connect(displayTimer_, SIGNAL(timeout()), this, SLOT(velocityDisp()));
 
+        connect(this, SIGNAL(RobotModeSignal(Mode)), this, SLOT(modeChange(Mode)));
+
 		displayTimer_->start(10);
 	}
 
@@ -308,10 +317,27 @@ namespace multibot2_robot
 
 		request->name = instance_manager_->robot().name();
 
-		if (_mode == Mode::REMOTE)
-			request->is_remote = true;
-		else if (_mode == Mode::MANUAL)
-			request->is_remote = false;
+		switch (_mode)
+		{
+		case Mode::REMOTE:
+			request->mode = "REMOTE";
+			break;
+
+		case Mode::MANUAL:
+			request->mode = "MANUAL";
+			break;
+
+		case Mode::AUTO:
+			request->mode = "AUTO";
+			break;
+
+		case Mode::STAY:
+			request->mode = "STAY";
+			break;
+
+		default:
+			break;
+		}
 
 		auto response_received_callback = [this](rclcpp::Client<ModeSelection>::SharedFuture _future)
 		{
@@ -357,15 +383,17 @@ namespace multibot2_robot
 
 		if (_request->name != robot_ros.robot().name())
 			abort();
-		
-		if (_request->is_remote == true)
-		{
-			robot_ros.mode() = Mode::REMOTE;
-		}
-		else
-		{
-			robot_ros.mode() = Mode::MANUAL;
 
+		std::map<std::string, Mode> mode_hashmap = {
+			{"REMOTE", Mode::REMOTE},
+			{"MANUAL", Mode::MANUAL},
+			{"AUTO", Mode::AUTO},
+			{"STAY", Mode::STAY}};
+
+		robot_ros.mode() = mode_hashmap[_request->mode];
+
+		if (robot_ros.mode() == Mode::MANUAL)
+		{
 			robot_ros.robot().cur_vel_x() = 0.0;
 			robot_ros.robot().cur_vel_theta() = 0.0;
 		}

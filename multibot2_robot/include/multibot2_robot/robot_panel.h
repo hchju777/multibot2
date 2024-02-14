@@ -48,10 +48,19 @@ namespace multibot2_robot
     private:
         Q_OBJECT
 
+    signals:
+        void RobotModeSignal(Mode _mode);
+
     private slots:
         void connectionDisp();
         void modeDisp();
         void velocityDisp();
+
+        void modeChange(Mode _mode)
+        {
+            if (request_modeChange(_mode))
+                instance_manager_->robot_ros().mode() = _mode;
+        };
 
     private slots:
         void on_pushButton_Connect_clicked();
@@ -67,6 +76,9 @@ namespace multibot2_robot
 
     protected:
         void manual_control();
+
+    public:
+        void emit_mode_signal(Mode _mode) { emit RobotModeSignal(_mode); }
 
     protected:
         bool request_connection();

@@ -76,7 +76,10 @@ def generate_launch_description():
         param_rewrites={
             'base_frame_id':   robot_params['name'] + '/' + robot_params['odometry']['child_frame_id'],
             'odom_frame_id':   robot_params['name'] + '/' + robot_params['odometry']['frame_id'],
-            'scan_topic': '/'+ robot_params['name'] + '/' + robot_params['laser']['scan_topic']
+            'scan_topic': '/'+ robot_params['name'] + '/' + robot_params['laser']['scan_topic'],
+            'x': str(robot_params['spawn']['x']),
+            'y': str(robot_params['spawn']['y']),
+            'yaw': str(robot_params['spawn']['theta'])
         },
         convert_types=True
     )
@@ -147,7 +150,8 @@ def generate_launch_description():
             'max_vel_x': str(robot_params['velocity_profile']['max_vel_x']),
             'max_vel_theta': str(robot_params['velocity_profile']['max_vel_theta']),
             'acc_lim_x': str(robot_params['velocity_profile']['acc_lim_x']),
-            'acc_lim_theta': str(robot_params['velocity_profile']['acc_lim_theta'])
+            'acc_lim_theta': str(robot_params['velocity_profile']['acc_lim_theta']),
+            'max_global_plan_lookahead_dist': str(robot_params['avoidance_dist'])
         },
         convert_types=True
     )

@@ -17,9 +17,15 @@ namespace multibot2_robot
 
         odom_sub_ = _robot_ros.odom_sub_;
 
+        task_sub_ = _robot_ros.task_sub_;
+
         goal_sub_ = _robot_ros.goal_sub_;
 
         subgoal_sub_ = _robot_ros.subgoal_sub_;
+
+        neighbors_sub_ = _robot_ros.neighbors_sub_;
+
+        queue_revision_ = _robot_ros.queue_revision_;
 
         rviz_path_pub_ = _robot_ros.rviz_path_pub_;
     }
@@ -39,9 +45,15 @@ namespace multibot2_robot
 
             odom_sub_ = _rhs.odom_sub_;
 
+            task_sub_ = _rhs.task_sub_;
+
             goal_sub_ = _rhs.goal_sub_;
 
             subgoal_sub_ = _rhs.subgoal_sub_;
+
+            neighbors_sub_ = _rhs.neighbors_sub_;
+
+            queue_revision_ = _rhs.queue_revision_;
 
             rviz_path_pub_ = _rhs.rviz_path_pub_;
         }
@@ -54,6 +66,8 @@ namespace multibot2_robot
     {
         init_variables();
         init_parameters();
+
+        robot_ros_.subgoal() = robot_ros_.robot().goal();
 
         global_costmap_ros_->activate();
         local_costmap_ros_->activate();
@@ -72,13 +86,24 @@ namespace multibot2_robot
             std::string{nh_->get_namespace()} + "/odom", qos,
             std::bind(&Instance_Manager::odom_callback, this, std::placeholders::_1));
 
+        robot_ros_.task_sub() = nh_->create_subscription<Robot_ROS::Task>(
+            std::string{nh_->get_namespace()} + "/task", qos,
+            std::bind(&Instance_Manager::task_callback, this, std::placeholders::_1));
+
         robot_ros_.goal_sub() = nh_->create_subscription<geometry_msgs::msg::PoseStamped>(
             std::string{nh_->get_namespace()} + "/goal_pose", qos,
             std::bind(&Instance_Manager::goal_callback, this, std::placeholders::_1));
 
         robot_ros_.subgoal_sub() = nh_->create_subscription<geometry_msgs::msg::PoseStamped>(
-            std::string{nh_->get_namespace()} + "/goal_pose", qos,
+            std::string{nh_->get_namespace()} + "/subgoal_pose", qos,
             std::bind(&Instance_Manager::subgoal_callback, this, std::placeholders::_1));
+
+        robot_ros_.neighbors_sub() = nh_->create_subscription<Robot_ROS::Neighbors>(
+            std::string{nh_->get_namespace()} + "/neighbors", qos,
+            std::bind(&Instance_Manager::neighbors_callback, this, std::placeholders::_1));
+
+        robot_ros_.queue_revision() = nh_->create_client<Robot_ROS::QueueRivision>(
+            std::string{nh_->get_namespace()} + "/queue_revision");
 
         robot_ros_.rviz_path_pub() = nh_->create_publisher<nav_msgs::msg::Path>(
             std::string{nh_->get_namespace()} + "/rviz_traj", qos);
@@ -197,12 +222,14 @@ namespace multibot2_robot
 
             state.lin_vel = robot.cur_vel_x();
             state.ang_vel = robot.cur_vel_theta();
+
+            state.arrived = robot.arrived();
         }
 
         robot_ros_.state_pub()->publish(state);
     }
 
-     void Instance_Manager::odom_callback(const nav_msgs::msg::Odometry::SharedPtr _odom_msg)
+    void Instance_Manager::odom_callback(const nav_msgs::msg::Odometry::SharedPtr _odom_msg)
     {
         if (robot_ros_.mode() == Robot_ROS::Mode::MANUAL)
             return;
@@ -213,8 +240,24 @@ namespace multibot2_robot
         robot.cur_vel_theta() = _odom_msg->twist.twist.angular.z;
     }
 
+    void Instance_Manager::task_callback(const Robot_ROS::Task::SharedPtr _task_msg)
+    {
+        Robot &robot = robot_ros_.robot();
+
+        robot.goal() = multibot2_util::Pose(_task_msg->location);
+        robot_ros_.subgoal() = robot.goal();
+
+        robot_ros_.task_duration() = _task_msg->duration;
+    }
+
     void Instance_Manager::goal_callback(const geometry_msgs::msg::PoseStamped::SharedPtr _goal_msg)
     {
+        if (robot_ros_.mode() != Robot_ROS::Mode::AUTO and
+            robot_ros_.mode() != Robot_ROS::Mode::STAY)
+        {
+            return;
+        }
+
         tf2::Quaternion q(
             _goal_msg->pose.orientation.x,
             _goal_msg->pose.orientation.y,
@@ -227,9 +270,35 @@ namespace multibot2_robot
 
         Robot &robot = robot_ros_.robot();
 
-        robot.goal().x() = _goal_msg->pose.position.x;
-        robot.goal().y() = _goal_msg->pose.position.y;
-        robot.goal().theta() = yaw;
+        robot.goal() = multibot2_util::Pose(_goal_msg->pose);
+
+        robot_ros_.task_duration() = 0.0;
+
+        while (not(robot_ros_.queue_revision()->wait_for_service(1s)))
+        {
+            if (not(rclcpp::ok()))
+            {
+                RCLCPP_ERROR(nh_->get_logger(), "Interrupted while waiting for the service.");
+                return;
+            }
+            RCLCPP_ERROR(nh_->get_logger(), "Connection not available, waiting again...");
+        }
+
+        auto request = std::make_shared<Robot_ROS::QueueRivision::Request>();
+
+        request->name = robot.name();
+        request->pose = *_goal_msg;
+
+        auto response_received_callback = [this](rclcpp::Client<Robot_ROS::QueueRivision>::SharedFuture _future)
+        {
+            auto response = _future.get();
+            return;
+        };
+
+        auto future_result =
+            robot_ros_.queue_revision()->async_send_request(request, response_received_callback);
+
+        return;
     }
 
     void Instance_Manager::subgoal_callback(const geometry_msgs::msg::PoseStamped::SharedPtr _subgoal_msg)
@@ -244,8 +313,6 @@ namespace multibot2_robot
         double roll, pitch, yaw;
         m.getRPY(roll, pitch, yaw);
 
-        robot_ros_.subgoal().x() = _subgoal_msg->pose.position.x;
-        robot_ros_.subgoal().y() = _subgoal_msg->pose.position.y;
-        robot_ros_.subgoal().theta() = yaw;
+        robot_ros_.subgoal() = multibot2_util::Pose(_subgoal_msg->pose);
     }
 } // namespace multibot2_robot

@@ -51,6 +51,9 @@ namespace multibot2_util
         inline double &cur_vel_theta() { return cur_vel_theta_; }
         inline const double &cur_vel_theta() const { return cur_vel_theta_; }
 
+        inline bool &arrived() { return arrived_; }
+        inline const bool &arrived() const { return arrived_; }
+
         inline Eigen::Vector2d velocity()
         {
             Eigen::Vector2d velocity(cur_vel_x_ * std::cos(pose_.theta()), cur_vel_x_ * std::sin(pose_.theta()));
@@ -96,6 +99,8 @@ namespace multibot2_util
 
         double cur_vel_x_{std::numeric_limits<double>::quiet_NaN()};
         double cur_vel_theta_{std::numeric_limits<double>::quiet_NaN()};
+
+        bool arrived_{false};
 
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW

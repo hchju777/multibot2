@@ -60,10 +60,7 @@ namespace multibot2_server::SubgoalGenerator
         if (not(check_point_in_poly_w_holes(_point, cropped_vn_poly, poly_w_holes)))
             return false;
 
-        CGAL::Polyline_simplification_2::Squared_distance_cost cost;
-        CGAL::Polyline_simplification_2::Stop_below_count_ratio_threshold stop(stop_ratio_);
-
-        _poly = CGAL::Polyline_simplification_2::simplify(poly_w_holes, cost, stop);
+        _poly = poly_w_holes;
 
         if (_poly.outer_boundary().is_clockwise_oriented())
             _poly.outer_boundary().reverse_orientation();
@@ -92,13 +89,13 @@ namespace multibot2_server::SubgoalGenerator
             {
                 const CGAL::Object cur_seg_dual = vd_.dual().dual(ec->dual());
 
-                const auto cur_seg = convert_to_seg(cur_seg_dual, ec->has_target());
+                const auto cur_seg = convert_to_seg(cur_seg_dual, ec->has_target(), _point);
                 _poly.push_back(cur_seg.source());
 
                 if (not(ec->has_target()))
                 {
                     const CGAL::Object next_seg_dual = vd_.dual().dual(ec->next()->dual());
-                    const auto next_seg = convert_to_seg(next_seg_dual, ec->next()->has_target());
+                    const auto next_seg = convert_to_seg(next_seg_dual, ec->next()->has_target(), _point);
 
                     _poly.push_back(next_seg.target());
                 }
@@ -132,63 +129,41 @@ namespace multibot2_server::SubgoalGenerator
 
     bool BufferedVoronoiDiagram::convert_to_bvc(const Point_2 &_point, double _offset, CGAL::Polygon_with_holes_2<Kernel> &_poly_w_holes)
     {
-        for (size_t i = 0; i < _poly_w_holes.outer_boundary().size(); ++i)
+        CGAL::Polygon_with_holes_2<Kernel> outer_poly(_poly_w_holes.outer_boundary());
+        CGAL::Lazy_exact_nt<boost::multiprecision::mpq_rational> offset(_offset);
+
+        CGAL::Polygon_with_holes_2<Kernel> offset_poly_w_holes;
+
+        auto offset_poly_with_holes_vec = CGAL::create_interior_skeleton_and_offset_polygons_with_holes_2(offset, outer_poly);
+        for (auto &offset_poly_with_holes_ptr : offset_poly_with_holes_vec)
         {
-            const Point_2 &p1 = _poly_w_holes.outer_boundary()[i];
-            const Point_2 &p2 = _poly_w_holes.outer_boundary()[(i + 1) % _poly_w_holes.outer_boundary().size()];
+            std::vector<Point_2>::iterator ptr = CGAL::convex_hull_2(
+                offset_poly_with_holes_ptr->outer_boundary().begin(), offset_poly_with_holes_ptr->outer_boundary().end(), offset_poly_with_holes_ptr->outer_boundary().begin());
 
-            Eigen::Vector3d v1(CGAL::to_double(_point.x() - p1.x()), CGAL::to_double(_point.y() - p1.y()), 0.0);
-            Eigen::Vector3d v2(CGAL::to_double(p2.x() - p1.x()), CGAL::to_double(p2.y() - p1.y()), 0.0);
-
-            double distance = v1.cross(v2).z() / v2.norm();
-
-            if (distance < _offset)
-                return false;
+            offset_poly_with_holes_ptr->outer_boundary().erase(ptr, offset_poly_with_holes_ptr->outer_boundary().end());
         }
 
-        // To get a buffered voronoi cell, CGAL::create_interior_straight_skeleton_2 should be used.
-        // However, to use CGAL::create_interior_straight_skeleton_2, inexact_kernel should be used.
-        // See: https://doc.cgal.org/latest/Straight_skeleton_2/group__PkgStraightSkeleton2SkeletonFunctions.html
-        typedef CGAL::Exact_predicates_inexact_constructions_kernel InExact_Kernel;
-        typedef InExact_Kernel::Point_2 InExact_Point_2;
-
-        CGAL::Polygon_2<InExact_Kernel> twin_poly;
-        for (const auto &outer_vertex : _poly_w_holes.outer_boundary().container())
-        {
-            twin_poly.push_back(InExact_Point_2(CGAL::to_double(outer_vertex.x()), CGAL::to_double(outer_vertex.y())));
-        }
-
-        auto ss = CGAL::create_interior_straight_skeleton_2(twin_poly);
-
-        auto offset_polygon = CGAL::create_offset_polygons_2<CGAL::Polygon_2<Kernel>>(_offset, *ss);
-
-        assert(offset_polygon.size() == 1);
-
-        if (offset_polygon.empty())
+        if (not(check_point_in_poly_w_holes(_point, offset_poly_with_holes_vec, offset_poly_w_holes)))
             return false;
 
-        const std::deque<CGAL::Polygon_2<Kernel>> holes = _poly_w_holes.holes();
-
-        _poly_w_holes = CGAL::Polygon_with_holes_2<Kernel>();
-        _poly_w_holes.outer_boundary() = *offset_polygon.front();
-        for (const auto &hole : holes)
+        for (const auto &hole : _poly_w_holes.holes())
         {
-            std::list<CGAL::Polygon_with_holes_2<Kernel>> cropped_bvc_list;
-            CGAL::difference(_poly_w_holes, hole, std::back_insert_iterator(cropped_bvc_list));
+            std::list<CGAL::Polygon_with_holes_2<Kernel>> truncated_poly_w_holes;
+            CGAL::difference(offset_poly_w_holes, hole, std::back_inserter(truncated_poly_w_holes));
 
-            if (not(check_point_in_poly_w_holes(_point, cropped_bvc_list, _poly_w_holes)))
+            if (truncated_poly_w_holes.empty())
                 return false;
+
+
+            offset_poly_w_holes = truncated_poly_w_holes.front();
         }
 
-        CGAL::Polyline_simplification_2::Squared_distance_cost cost;
-        CGAL::Polyline_simplification_2::Stop_below_count_ratio_threshold stop(stop_ratio_);
-
-        _poly_w_holes = CGAL::Polyline_simplification_2::simplify(_poly_w_holes, cost, stop);
+        _poly_w_holes = offset_poly_w_holes;
 
         return true;
     }
 
-    Kernel::Segment_2 BufferedVoronoiDiagram::convert_to_seg(const CGAL::Object _seg_obj, bool _outgoing)
+    Kernel::Segment_2 BufferedVoronoiDiagram::convert_to_seg(const CGAL::Object _seg_obj, bool _outgoing, const Point_2 &_point)
     {
         const Kernel::Segment_2 *dseg = CGAL::object_cast<Kernel::Segment_2>(&_seg_obj);
         const Kernel::Ray_2 *dray = CGAL::object_cast<Kernel::Ray_2>(&_seg_obj);
@@ -218,7 +193,14 @@ namespace multibot2_server::SubgoalGenerator
         }
         else
         {
-            const auto &point = dline->point();
+            double a = CGAL::to_double(dline->a());
+            double b = CGAL::to_double(dline->b());
+            double c = CGAL::to_double(dline->c());
+
+            const auto point = Kernel::Point_2(
+                (-a * c + b * b * _point.x() - a * b * _point.y()) / std::sqrt(a * a + b * b),
+                (-b * c - a * b * _point.x() + a * a * _point.y()) / std::sqrt(a * a + b * b));
+
             const auto dpx = point.x();
             const auto dpy = point.y();
             const auto &dir = dline->direction();
@@ -251,5 +233,18 @@ namespace multibot2_server::SubgoalGenerator
         }
 
         return founded;
+    }
+
+    bool BufferedVoronoiDiagram::check_point_in_poly_w_holes(
+        const Point_2 &_point, const std::vector<boost::shared_ptr<CGAL::Polygon_with_holes_2<Kernel>>> &_poly_w_holes_vec,
+        CGAL::Polygon_with_holes_2<Kernel> &_poly_w_holes)
+    {
+        std::list<CGAL::Polygon_with_holes_2<Kernel>> poly_w_holes_list;
+        poly_w_holes_list.clear();
+
+        for (const auto &poly_w_holes : _poly_w_holes_vec)
+            poly_w_holes_list.emplace_back(*poly_w_holes);
+
+        return check_point_in_poly_w_holes(_point, poly_w_holes_list, _poly_w_holes);
     }
 } // namespace multibot2_server::SubgoalGenerator

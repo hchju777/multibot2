@@ -184,6 +184,9 @@ namespace multibot2_robot::teb_local_planner
 
     //@}
 
+  public:
+    void updateObstacleContainerWithServer(ObstaclePtr _obs) { obstacles_.push_back(_obs); };
+
   protected:
     /**
      * @brief Update internal obstacle vector based on occupied costmap cells

@@ -2,6 +2,7 @@
 
 #include <memory>
 #include <map>
+#include <queue>
 
 #include "multibot2_util/base_robot_info.h"
 
@@ -15,6 +16,41 @@ namespace multibot2_server
 
     public:
         typedef std::map<double, Robot, std::greater<double>> Neighbors;
+
+        struct Task
+        {
+        public:
+            Task() {}
+
+            Task(const multibot2_util::Pose &_loc, double _duration) : loc_(_loc), duration_(_duration) {}
+
+            Task(const Task &_task)
+            {
+                loc_ = _task.loc_;
+                duration_ = _task.duration_;
+            }
+
+            Task &operator=(const Task &_rhs)
+            {
+                if (&_rhs != this)
+                {
+                    loc_ = _rhs.loc_;
+                    duration_ = _rhs.duration_;
+                }
+
+                return *this;
+            }
+
+            inline multibot2_util::Pose &loc() { return loc_; }
+            inline const multibot2_util::Pose &loc() const { return loc_; }
+
+            inline double &duration() { return duration_; }
+            inline const double &duration() const { return duration_; }
+
+        protected:
+            multibot2_util::Pose loc_;
+            double duration_;
+        }; // struct Task
 
         struct Cone
         {
@@ -67,6 +103,12 @@ namespace multibot2_server
         inline std::vector<Cone> &VOCones() { return VOCones_; }
         inline const std::vector<Cone> &VOCones() const { return VOCones_; }
 
+        inline std::queue<Task> &task_queue() { return task_queue_; }
+        inline const std::queue<Task> &task_queue() const { return task_queue_; }
+
+        inline std::queue<Task> &goal_queue() { return goal_queue_; }
+        inline const std::queue<Task> &goal_queue() const { return goal_queue_; }
+
     public:
         Robot &operator=(const Robot &_rhs);
 
@@ -87,6 +129,9 @@ namespace multibot2_server
 
         Neighbors neighbors_;
         std::vector<Cone> VOCones_;
+
+        std::queue<Task> task_queue_;
+        std::queue<Task> goal_queue_;
 
     }; // class Robot
 
