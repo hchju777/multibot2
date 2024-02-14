@@ -36,6 +36,8 @@ set(dependencies
 set(msg_files
   "msg/DriverStatusStamped.msg"
   "msg/FeedbackMsg.msg"
+  "msg/Neighbor.msg"
+  "msg/Neighbors.msg"
   "msg/RobotConfig.msg"
   "msg/RobotState.msg"
   "msg/Task.msg"

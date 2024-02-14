@@ -22,6 +22,7 @@
 
 #include "multibot2_msgs/msg/robot_state.hpp"
 #include "multibot2_msgs/msg/task.hpp"
+#include "multibot2_msgs/msg/neighbors.hpp"
 
 namespace multibot2_robot
 {
@@ -34,6 +35,8 @@ namespace multibot2_robot
 
         typedef multibot2_msgs::msg::RobotState RobotState;
         typedef multibot2_msgs::msg::Task Task;
+        typedef multibot2_msgs::msg::Neighbor Neighbor;
+        typedef multibot2_msgs::msg::Neighbors Neighbors;
         typedef multibot2_util::PanelUtil::ModeSelection ModeSelection;
         typedef multibot2_util::PanelUtil::Mode Mode;
 
@@ -55,6 +58,9 @@ namespace multibot2_robot
 
         inline Pose &subgoal() { return subgoal_; }
         inline const Pose &subgoal() const { return subgoal_; }
+
+        inline Neighbors &neighbors() { return neighbors_; }
+        inline const Neighbors &neighbors() const { return neighbors_; }
 
         inline double &task_duration() { return task_duration_; }
         inline const double &task_duration() const { return task_duration_; }
@@ -80,12 +86,17 @@ namespace multibot2_robot
         inline rclcpp::Subscription<geometry_msgs::msg::PoseStamped>::SharedPtr &subgoal_sub() { return subgoal_sub_; }
         inline const rclcpp::Subscription<geometry_msgs::msg::PoseStamped>::SharedPtr &subgoal_sub() const { return subgoal_sub_; }
 
+        inline rclcpp::Subscription<Neighbors>::SharedPtr &neighbors_sub() { return neighbors_sub_; }
+        inline const rclcpp::Subscription<Neighbors>::SharedPtr &neighbors_sub() const { return neighbors_sub_; }
+
         inline rclcpp_lifecycle::LifecyclePublisher<nav_msgs::msg::Path>::SharedPtr &rviz_path_pub() { return rviz_path_pub_; }
         inline const rclcpp_lifecycle::LifecyclePublisher<nav_msgs::msg::Path>::SharedPtr &rviz_path_pub() const { return rviz_path_pub_; }
 
     protected:
         Robot robot_;
         Pose subgoal_;
+
+        Neighbors neighbors_;
 
         double task_duration_{0.0};
 
@@ -103,6 +114,8 @@ namespace multibot2_robot
         rclcpp::Subscription<geometry_msgs::msg::PoseStamped>::SharedPtr goal_sub_;
 
         rclcpp::Subscription<geometry_msgs::msg::PoseStamped>::SharedPtr subgoal_sub_;
+
+        rclcpp::Subscription<Neighbors>::SharedPtr neighbors_sub_;
 
         rclcpp_lifecycle::LifecyclePublisher<nav_msgs::msg::Path>::SharedPtr rviz_path_pub_;
     }; // struct Robot_ROS
@@ -156,6 +169,8 @@ namespace multibot2_robot
         void goal_callback(const geometry_msgs::msg::PoseStamped::SharedPtr _goal_msg);
 
         void subgoal_callback(const geometry_msgs::msg::PoseStamped::SharedPtr _subgoal_msg);
+
+        void neighbors_callback(const Robot_ROS::Neighbors::SharedPtr _neighbors_msg) { robot_ros_.neighbors() = *_neighbors_msg; }
 
     protected:
         nav2_util::LifecycleNode::SharedPtr nh_;

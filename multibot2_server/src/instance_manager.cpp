@@ -132,12 +132,18 @@ namespace multibot2_server
             robot_ros.initialpose_pub_ = nh_->create_publisher<geometry_msgs::msg::PoseWithCovarianceStamped>(
                 "/" + robotName + "/initialpose", qos);
             robot_ros.initialpose_pub_->on_activate();
-            robot_ros.goal_pose_pub_ = nh_->create_publisher<geometry_msgs::msg::PoseStamped>(
-                "/" + robotName + "/goal_pose", qos);
-            robot_ros.goal_pose_pub_->on_activate();
             robot_ros.task_pub_ = nh_->create_publisher<Robot_ROS::Task>(
                 "/" + robotName + "/task", qos);
             robot_ros.task_pub_->on_activate();
+            robot_ros.goal_pose_pub_ = nh_->create_publisher<geometry_msgs::msg::PoseStamped>(
+                "/" + robotName + "/goal_pose", qos);
+            robot_ros.goal_pose_pub_->on_activate();
+            robot_ros.subgoal_pose_pub_ = nh_->create_publisher<geometry_msgs::msg::PoseStamped>(
+                "/" + robotName + "/subgoal_pose", qos);
+            robot_ros.subgoal_pose_pub_->on_activate();
+            robot_ros.neighbors_pub_ = nh_->create_publisher<Robot_ROS::Neighbors>(
+                "/" + robotName + "/neighbors", qos);
+            robot_ros.neighbors_pub_->on_activate();
         }
 
         if (tasks_.contains(robotName))
@@ -318,6 +324,13 @@ namespace multibot2_server
             robots_[_robotName].goal_pose_pub_->publish(_goal_msg);
     }
 
+    void Instance_Manager::subgoal_pose_pub(
+        const std::string _robotName, const geometry_msgs::msg::PoseStamped &_subgoal_msg)
+    {
+        if (robots_.contains(_robotName))
+            robots_[_robotName].subgoal_pose_pub_->publish(_subgoal_msg);
+    }
+
     void Instance_Manager::convert_map_to_polygons()
     {
         std::shared_ptr<costmap_converter::CostmapToPolygonsDBSMCCH> costmap_converter = std::make_shared<costmap_converter::CostmapToPolygonsDBSMCCH>();
@@ -376,7 +389,6 @@ namespace multibot2_server
                 continue;
 
             robot.goal() = robot.goal_queue().front().loc();
-            std::cout << robot.goal() << std::endl;
 
             Robot_ROS::Task task;
             {
@@ -406,6 +418,7 @@ namespace multibot2_server
             geometry_msgs::msg::PoseStamped self_pose;
             self.pose().toPoseMsg(self_pose.pose);
 
+            Robot_ROS::Neighbors neighbors_msg;
             for (auto neighbor_it = std::next(self_it); neighbor_it != robots_.end(); ++neighbor_it)
             {
                 Robot &neighbor = neighbor_it->second.robot_;
@@ -439,7 +452,21 @@ namespace multibot2_server
 
                 self.neighbors().emplace(path_length, neighbor);
                 neighbor.neighbors().emplace(path_length, self);
+
+                if (path_length < 2.5)
+                {
+                    Robot_ROS::Neighbor neighbor_msg;
+                    {
+                        neighbor_msg.radius = neighbor.radius();
+                        neighbor.pose().toPoseMsg(neighbor_msg.pose.pose);
+                        neighbor_msg.velocity.linear.x = neighbor.cur_vel_x();
+                        neighbor_msg.velocity.angular.z = neighbor.cur_vel_theta();
+                    }
+                    neighbors_msg.neighbors.push_back(neighbor_msg);
+                }
             }
+            Robot_ROS &self_ros = self_it->second;
+            self_ros.neighbors_pub_->publish(neighbors_msg);
         }
     }
 } // namespace multibot2_server

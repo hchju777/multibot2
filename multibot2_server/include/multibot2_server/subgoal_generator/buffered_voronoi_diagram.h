@@ -24,7 +24,9 @@
 
 #include <CGAL/create_offset_polygons_2.h>
 #include <CGAL/Polygon_offset_builder_2.h>
-#include <CGAL/Straight_skeleton_2/Straight_skeleton_aux.h>
+#include <CGAL/create_offset_polygons_from_polygon_with_holes_2.h>
+
+#include <CGAL/convex_hull_2.h>
 
 #include <CGAL/Triangulation_utils_2.h>
 #include <CGAL/Voronoi_diagram_2/Face.h>
@@ -35,6 +37,8 @@
 
 // typedefs for defining the adaptor
 typedef CGAL::Exact_predicates_exact_constructions_kernel Kernel;
+typedef CGAL::Exact_predicates_inexact_constructions_kernel InExact_Kernel;
+
 typedef CGAL::Delaunay_triangulation_2<Kernel> DT;
 typedef CGAL::Delaunay_triangulation_adaptation_traits_2<DT> AT;
 typedef CGAL::Delaunay_triangulation_caching_degeneracy_removal_policy_2<DT> AP;
@@ -117,6 +121,10 @@ namespace multibot2_server::SubgoalGenerator
             const Point_2 &_point, const std::list<CGAL::Polygon_with_holes_2<Kernel>> &_poly_w_holes_list,
             CGAL::Polygon_with_holes_2<Kernel> &_poly_w_holes);
 
+        bool check_point_in_poly_w_holes(
+            const Point_2 &_point, const std::vector<boost::shared_ptr<CGAL::Polygon_with_holes_2<Kernel>>> &_poly_w_holes_vec,
+            CGAL::Polygon_with_holes_2<Kernel> &_poly_w_holes);
+
     protected:
         VD vd_;
 
@@ -125,7 +133,7 @@ namespace multibot2_server::SubgoalGenerator
         CGAL::Polygon_with_holes_2<Kernel> map_poly_;
 
         double min_offset_{2.7};
-        double stop_ratio_{0.7};
+        double stop_ratio_{0.1};
 
     }; // class BufferedVoronoiDiagram
 } // namespace multibot2_server::SubgoalGenerator

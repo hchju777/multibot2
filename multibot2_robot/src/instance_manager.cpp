@@ -23,6 +23,8 @@ namespace multibot2_robot
 
         subgoal_sub_ = _robot_ros.subgoal_sub_;
 
+        neighbors_sub_ = _robot_ros.neighbors_sub_;
+
         rviz_path_pub_ = _robot_ros.rviz_path_pub_;
     }
 
@@ -46,6 +48,8 @@ namespace multibot2_robot
             goal_sub_ = _rhs.goal_sub_;
 
             subgoal_sub_ = _rhs.subgoal_sub_;
+
+            neighbors_sub_ = _rhs.neighbors_sub_;
 
             rviz_path_pub_ = _rhs.rviz_path_pub_;
         }
@@ -87,8 +91,12 @@ namespace multibot2_robot
             std::bind(&Instance_Manager::goal_callback, this, std::placeholders::_1));
 
         robot_ros_.subgoal_sub() = nh_->create_subscription<geometry_msgs::msg::PoseStamped>(
-            std::string{nh_->get_namespace()} + "/goal_pose", qos,
+            std::string{nh_->get_namespace()} + "/subgoal_pose", qos,
             std::bind(&Instance_Manager::subgoal_callback, this, std::placeholders::_1));
+
+        robot_ros_.neighbors_sub() = nh_->create_subscription<Robot_ROS::Neighbors>(
+            std::string{nh_->get_namespace()} + "/neighbors", qos,
+            std::bind(&Instance_Manager::neighbors_callback, this, std::placeholders::_1));
 
         robot_ros_.rviz_path_pub() = nh_->create_publisher<nav_msgs::msg::Path>(
             std::string{nh_->get_namespace()} + "/rviz_traj", qos);

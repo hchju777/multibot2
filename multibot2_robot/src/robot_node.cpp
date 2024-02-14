@@ -152,6 +152,29 @@ namespace multibot2_robot
 
         teb_local_planner_->setPlan(navfn_global_planner_->createPlan(current_pose, goal_pose));
 
+        for (const auto &neighbor : instance_manager_->robot_ros().neighbors().neighbors)
+        {
+            teb_local_planner::ObstaclePtr obs(
+                new teb_local_planner::CircularObstacle(neighbor.pose.pose.position.x,
+                                                        neighbor.pose.pose.position.y,
+                                                        neighbor.radius));
+
+            tf2::Quaternion q(
+                neighbor.pose.pose.orientation.x,
+                neighbor.pose.pose.orientation.y,
+                neighbor.pose.pose.orientation.z,
+                neighbor.pose.pose.orientation.w);
+            tf2::Matrix3x3 m(q);
+
+            double roll, pitch, yaw;
+            m.getRPY(roll, pitch, yaw);
+
+            obs->setCentroidVelocity(Eigen::Vector2d(neighbor.velocity.linear.x * std::cos(yaw),
+                                                     neighbor.velocity.linear.x * std::sin(yaw)));
+
+            teb_local_planner_->updateObstacleContainerWithServer(obs);
+        }
+
         try
         {
             cmd_vel_2d = teb_local_planner_->computeVelocityCommands(local_current_pose, current_twist);

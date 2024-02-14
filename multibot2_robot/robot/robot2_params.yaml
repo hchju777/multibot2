@@ -11,7 +11,7 @@
       spawn: # Optional: Gazebo Initial Spwan Pose
         x: 15.6
         y: 6.3
-        theta: 0.0
+        theta: 3.14
 
       type: "DiffDrive" # types: "DiffDrive" or "CarLike"
 

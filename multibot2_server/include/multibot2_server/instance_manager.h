@@ -23,6 +23,7 @@
 
 #include "multibot2_msgs/msg/robot_state.hpp"
 #include "multibot2_msgs/msg/task.hpp"
+#include "multibot2_msgs/msg/neighbors.hpp"
 
 using namespace multibot2_util;
 
@@ -32,6 +33,8 @@ namespace multibot2_server
     {
         typedef multibot2_msgs::msg::RobotState State;
         typedef multibot2_msgs::msg::Task Task;
+        typedef multibot2_msgs::msg::Neighbor Neighbor;
+        typedef multibot2_msgs::msg::Neighbors Neighbors;
 
         Robot robot_;
         int32_t id_;
@@ -44,8 +47,10 @@ namespace multibot2_server
         rclcpp_lifecycle::LifecyclePublisher<geometry_msgs::msg::Twist>::SharedPtr cmd_vel_pub_;
         rclcpp_lifecycle::LifecyclePublisher<std_msgs::msg::Bool>::SharedPtr kill_robot_cmd_;
         rclcpp_lifecycle::LifecyclePublisher<geometry_msgs::msg::PoseWithCovarianceStamped>::SharedPtr initialpose_pub_;
-        rclcpp_lifecycle::LifecyclePublisher<geometry_msgs::msg::PoseStamped>::SharedPtr goal_pose_pub_;
         rclcpp_lifecycle::LifecyclePublisher<Task>::SharedPtr task_pub_;
+        rclcpp_lifecycle::LifecyclePublisher<geometry_msgs::msg::PoseStamped>::SharedPtr goal_pose_pub_;
+        rclcpp_lifecycle::LifecyclePublisher<geometry_msgs::msg::PoseStamped>::SharedPtr subgoal_pose_pub_;
+        rclcpp_lifecycle::LifecyclePublisher<Neighbors>::SharedPtr neighbors_pub_;
         rclcpp::Client<PanelUtil::ModeSelection>::SharedPtr modeFromServer_;
         rclcpp::Service<PanelUtil::ModeSelection>::SharedPtr modeFromRobot_;
     }; // struct Robot_ROS
@@ -103,6 +108,8 @@ namespace multibot2_server
         void initialpose_pub(const std::string _robotName, const geometry_msgs::msg::PoseWithCovarianceStamped &_initialpose_msg);
 
         void goal_pose_pub(const std::string _robotName, const geometry_msgs::msg::PoseStamped &_goal_msg);
+
+        void subgoal_pose_pub(const std::string _robotName, const geometry_msgs::msg::PoseStamped &_subgoal_msg);
 
     protected:
         void convert_map_to_polygons();

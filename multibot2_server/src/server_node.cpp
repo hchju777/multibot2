@@ -71,6 +71,9 @@ namespace multibot2_server
 
     void MultibotServer::update_subgoals()
     {
+        if (instance_manager_->robots().size() < 2)
+            return;
+
         std::map<std::string, Robot> robots;
         for (const auto &robot_rosPair : instance_manager_->robots())
         {
@@ -79,6 +82,18 @@ namespace multibot2_server
             robots.emplace(robot.name(), robot);
         }
 
+        // std::chrono::system_clock::time_point start = std::chrono::system_clock::now();
         subgoal_generator_->update_subgoals(robots);
+        // std::chrono::duration<double> sec = std::chrono::system_clock::now() - start;
+
+        for (const auto &robotPair : robots)
+        {
+            std::string robotName = robotPair.first;
+
+            geometry_msgs::msg::PoseStamped subgoal_pose;
+            robotPair.second.subgoal().toPoseMsg(subgoal_pose.pose);
+
+            instance_manager_->subgoal_pose_pub(robotName, subgoal_pose);
+        }
     }
 } // namespace multibot2_server
