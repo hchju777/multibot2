@@ -494,7 +494,7 @@ namespace multibot2_server
                 self.neighbors().emplace(path_length, neighbor);
                 neighbor.neighbors().emplace(path_length, self);
 
-                if (path_length < 2.5)
+                if (path_length < 2.7)
                 {
                     Robot_ROS::Neighbor neighbor_msg;
                     {
