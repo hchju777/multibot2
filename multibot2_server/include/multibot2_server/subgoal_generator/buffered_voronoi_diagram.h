@@ -115,7 +115,7 @@ namespace multibot2_server::SubgoalGenerator
         inline bool is_valid() { return vd_.is_valid(); }
 
     protected:
-        Kernel::Segment_2 convert_to_seg(const CGAL::Object _seg_obj, bool _outgoing);
+        Kernel::Segment_2 convert_to_seg(const CGAL::Object _seg_obj, bool _outgoing, const Point_2 &_point);
 
         bool check_point_in_poly_w_holes(
             const Point_2 &_point, const std::list<CGAL::Polygon_with_holes_2<Kernel>> &_poly_w_holes_list,

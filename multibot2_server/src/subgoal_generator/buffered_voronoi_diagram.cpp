@@ -89,13 +89,13 @@ namespace multibot2_server::SubgoalGenerator
             {
                 const CGAL::Object cur_seg_dual = vd_.dual().dual(ec->dual());
 
-                const auto cur_seg = convert_to_seg(cur_seg_dual, ec->has_target());
+                const auto cur_seg = convert_to_seg(cur_seg_dual, ec->has_target(), _point);
                 _poly.push_back(cur_seg.source());
 
                 if (not(ec->has_target()))
                 {
                     const CGAL::Object next_seg_dual = vd_.dual().dual(ec->next()->dual());
-                    const auto next_seg = convert_to_seg(next_seg_dual, ec->next()->has_target());
+                    const auto next_seg = convert_to_seg(next_seg_dual, ec->next()->has_target(), _point);
 
                     _poly.push_back(next_seg.target());
                 }
@@ -163,7 +163,7 @@ namespace multibot2_server::SubgoalGenerator
         return true;
     }
 
-    Kernel::Segment_2 BufferedVoronoiDiagram::convert_to_seg(const CGAL::Object _seg_obj, bool _outgoing)
+    Kernel::Segment_2 BufferedVoronoiDiagram::convert_to_seg(const CGAL::Object _seg_obj, bool _outgoing, const Point_2 &_point)
     {
         const Kernel::Segment_2 *dseg = CGAL::object_cast<Kernel::Segment_2>(&_seg_obj);
         const Kernel::Ray_2 *dray = CGAL::object_cast<Kernel::Ray_2>(&_seg_obj);
@@ -193,7 +193,14 @@ namespace multibot2_server::SubgoalGenerator
         }
         else
         {
-            const auto &point = dline->point();
+            double a = CGAL::to_double(dline->a());
+            double b = CGAL::to_double(dline->b());
+            double c = CGAL::to_double(dline->c());
+
+            const auto point = Kernel::Point_2(
+                (-a * c + b * b * _point.x() - a * b * _point.y()) / std::sqrt(a * a + b * b),
+                (-b * c - a * b * _point.x() + a * a * _point.y()) / std::sqrt(a * a + b * b));
+
             const auto dpx = point.x();
             const auto dpy = point.y();
             const auto &dir = dline->direction();
