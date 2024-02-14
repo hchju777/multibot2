@@ -140,6 +140,7 @@ namespace multibot2_server
         std::map<std::string, Robot_ROS> robots_;
 
         std::map<std::string, std::queue<Robot::Task>> tasks_;
+        std::map<std::string, bool> task_loops_;
 
         std::shared_ptr<nav2_costmap_2d::Costmap2DROS> global_costmap_ros_;
         std::unique_ptr<nav2_util::NodeThread> global_costmap_thread_;

@@ -28,6 +28,12 @@ namespace multibot2_server
         std::map<std::string, Robot_ROS> empty_robots;
         robots_.swap(empty_robots);
 
+        std::map<std::string, std::queue<Robot::Task>> empty_tasks;
+        tasks_.swap(empty_tasks);
+
+        std::map<std::string, bool> empty_task_loops;
+        task_loops_.swap(task_loops_);
+
         global_costmap_ros_ = std::make_shared<nav2_costmap_2d::Costmap2DROS>(
             "global_costmap", std::string{nh_->get_namespace()}, "global_costmap");
         global_costmap_thread_ = std::make_unique<nav2_util::NodeThread>(global_costmap_ros_);
@@ -96,6 +102,9 @@ namespace multibot2_server
                 }
 
                 tasks_.emplace(name, task_queue);
+
+                bool task_loop = robot_tasks["loop"].as<bool>();
+                task_loops_.emplace(name, task_loop);
             }
 
             return true;
@@ -151,10 +160,18 @@ namespace multibot2_server
 
         if (tasks_.contains(robotName))
         {
+            if (not(tasks_[robotName].empty()))
+            {
+                if (tasks_[robotName].size() > 1 and task_loops_[robotName])
+                    tasks_[robotName].push(tasks_[robotName].front());
+
+                robot_ros.robot_.goal() = tasks_[robotName].front().loc();
+
+                tasks_[robotName].pop();
+            }
+
             robot_ros.robot_.task_queue() = tasks_[robotName];
             robot_ros.robot_.goal_queue() = tasks_[robotName];
-
-            robot_ros.robot_.goal() = tasks_[robotName].front().loc();
 
             Robot_ROS::Task task;
             {
@@ -387,9 +404,7 @@ namespace multibot2_server
 
     void Instance_Manager::update_goals()
     {
-        std::map<std::string, Robot_ROS> robots = robots_;
-
-        for (auto &robotPair : robots)
+        for (auto &robotPair : robots_)
         {
             Robot &robot = robotPair.second.robot_;
 
@@ -403,16 +418,18 @@ namespace multibot2_server
             if (tasks_[robot.name()].empty() or robot.task_queue().empty() or robot.goal_queue().empty())
                 continue;
 
-            robot = robots_[robot.name()].robot_;
+            if (tasks_[robot.name()].size() > 1 and task_loops_[robot.name()])
+            {
+                tasks_[robot.name()].push(tasks_[robot.name()].front());
+                robot.task_queue().push(robot.task_queue().front());
+                robot.goal_queue().push(robot.goal_queue().front());
+            }
+
+            robot.goal() = robot.goal_queue().front().loc();
 
             tasks_[robot.name()].pop();
             robot.task_queue().pop();
             robot.goal_queue().pop();
-
-            if (robot.goal_queue().empty())
-                continue;
-
-            robot.goal() = robot.goal_queue().front().loc();
 
             Robot_ROS::Task task;
             {
