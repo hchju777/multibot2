@@ -29,4 +29,4 @@ robot:
       acc_lim_x: 2.5
       acc_lim_theta: 3.2
       allow_init_with_backwards_motion: false
-      weight_kinematics_forward_drive: 100.0
+      weight_kinematics_forward_drive: 150.0
