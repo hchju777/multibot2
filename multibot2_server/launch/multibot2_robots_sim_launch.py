@@ -15,7 +15,7 @@ def generate_launch_description():
     
     multibot2_robot_cmds = []        
     for robot in robots:
-        multibot2_robot_launch = robot + '_simul_launch.py'
+        multibot2_robot_launch = robot + '_sim_launch.py'
                 
         multibot2_robot_cmds.append(
             IncludeLaunchDescription(
