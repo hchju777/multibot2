@@ -1,0 +1,29 @@
+/**:
+  ros__parameters:
+    robot:
+      name: "Controller"
+
+      spawn: # Optional: Gazebo Initial Spwan Pose
+        x: 10.2
+        y: 6.3
+        theta: 0.0
+
+      type: "DiffDrive" # types: "DiffDrive" or "CarLike"
+
+      radius: 0.70
+
+      wheels:
+        seperation: 0.5
+        radius: 0.32
+
+      odometry:
+        topic: "odom"
+        frame_id: "odom"
+        child_frame_id: "base_link"
+
+      laser:
+        frame_id: "laser"
+        scan_topic: "scan"
+        offset_x: 0.0
+        offset_y: 0.0
+        offset_z: 0.28
