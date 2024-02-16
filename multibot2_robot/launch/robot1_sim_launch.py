@@ -145,7 +145,11 @@ def generate_launch_description():
         param_rewrites={
             'odom_topic': '/' + robot_params['name'] + '/' + robot_params['odometry']['topic'],
             'map_frame': robot_params['name'] + '/' + robot_params['odometry']['frame_id'],
-            'footprint_model.radius': str(robot_params['radius']),
+            'footprint_model.type': str(robot_params['footprint_model']['type']),
+            'footprint_model.front_offset': str(robot_params['footprint_model']['front_offset']),
+            'footprint_model.front_radius': str(robot_params['footprint_model']['front_radius']),
+            'footprint_model.rear_offset': str(robot_params['footprint_model']['rear_offset']),
+            'footprint_model.rear_radius': str(robot_params['footprint_model']['rear_radius']),
             'inflation_dist': str(robot_params['radius']),
             'max_vel_x': str(robot_params['velocity_profile']['max_vel_x']),
             'max_vel_theta': str(robot_params['velocity_profile']['max_vel_theta']),
