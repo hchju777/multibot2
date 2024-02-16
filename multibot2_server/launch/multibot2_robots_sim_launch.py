@@ -11,16 +11,11 @@ def generate_launch_description():
     
     multibot2_robot_dir = get_package_share_directory("multibot2_robot")
     
-    # multibot2_server_cmd = IncludeLaunchDescription(
-    #     PythonLaunchDescriptionSource(os.path.join(
-    #         multibot2_server_dir, 'launch', 'multibot2_server_simul_launch.py'))
-    # )
-    
     robots = ["robot1", "robot2"]
     
     multibot2_robot_cmds = []        
     for robot in robots:
-        multibot2_robot_launch = robot + '_simul_launch.py'
+        multibot2_robot_launch = robot + '_sim_launch.py'
                 
         multibot2_robot_cmds.append(
             IncludeLaunchDescription(

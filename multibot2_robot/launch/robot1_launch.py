@@ -13,34 +13,65 @@ from nav2_common.launch import RewrittenYaml
 import yaml
 
 def generate_launch_description():
-    target = 'robot2_params.yaml'
+    target = 'robot1_params.yaml'
 
     multibot2_robot_dir = get_package_share_directory("multibot2_robot")
 
     robotConfig = os.path.join(multibot2_robot_dir, 'robot', target)
 
-    use_sim_time = True
+    use_sim_time = False
 
     with open(robotConfig) as robot_params:
         robot_params = yaml.load(robot_params, Loader=yaml.Loader)
         robot_params = robot_params['/**']['ros__parameters']['robot']
     
-    # Fake Node
-    fake_driver_cmd = IncludeLaunchDescription(
+    # ISR_M2 Driver
+    isr_m2_node_cmd = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(os.path.join(get_package_share_directory('multibot2_driver'), 'launch',
-                                                   'fake_driver_launch.py')),
+                                                   'isr_m2_node_launch.py')),
         launch_arguments={
             'robot_name': robot_params['name'],
-            'robot_type': robot_params['type'],
-            'robot_config': robotConfig,
-            'frame_prefix': robot_params['name'] + '/',
             'odom_frame': robot_params['name'] + '/' + robot_params['odometry']['frame_id'],
             'base_frame': robot_params['name'] + '/' + robot_params['odometry']['child_frame_id'],
-            'x': str(robot_params['spawn']['x']),
-            'y': str(robot_params['spawn']['y']),
-            'Y': str(robot_params['spawn']['theta'])
+            'laser_frame': robot_params['name'] + '/' + robot_params['laser']['frame_id'],
+            'laser_offset_x': str(robot_params['laser']['offset_x']),
+            'laser_offset_y': str(robot_params['laser']['offset_y']),
+            'laser_offset_z': str(robot_params['laser']['offset_z'])
         }.items()
     )
+    
+    # LIDAR
+    if (robot_params['laser']['type'] == "sick_tim"):
+        lidar_driver = Node(
+            package='sick_tim',
+            executable='sick_tim551_2050001',
+            name='sick_tim_driver',
+            namespace=robot_params['name'],
+            parameters=[
+                {'range_max': '25.0'},
+                {'hostname' : robot_params['laser']['hostname']},
+                {'port': '2112'},
+                {'timelimit': 5},
+                {'frame_id': robot_params['name'] + '/' + robot_params['laser']['frame_id']},
+                {'use_sim_time': use_sim_time}
+            ]
+        )
+    elif (robot_params['laser']['type'] == "hokuyo"):
+        lidar_driver = Node(
+            package='urg_node',
+            executable='urg_node_driver',
+            name='hokuyo_driver',
+            namespace=robot_params['name'],
+            output='screen',
+            parameters=[
+                {'ip_address': robot_params['laser']['hostname']},
+                {'laser_frame_id': robot_params['name'] + '/' + robot_params['laser']['frame_id']},
+                {'use_sim_time': use_sim_time}
+            ]
+        )
+    else:
+        print("WRONG_LIDAR_TYPE")
+        os.abort()
     
     # Rviz
     rviz_config_dir = os.path.join(
@@ -145,7 +176,11 @@ def generate_launch_description():
         param_rewrites={
             'odom_topic': '/' + robot_params['name'] + '/' + robot_params['odometry']['topic'],
             'map_frame': robot_params['name'] + '/' + robot_params['odometry']['frame_id'],
-            'footprint_model.radius': str(robot_params['radius']),
+            'footprint_model.type': str(robot_params['footprint_model']['type']),
+            'footprint_model.front_offset': str(robot_params['footprint_model']['front_offset']),
+            'footprint_model.front_radius': str(robot_params['footprint_model']['front_radius']),
+            'footprint_model.rear_offset': str(robot_params['footprint_model']['rear_offset']),
+            'footprint_model.rear_radius': str(robot_params['footprint_model']['rear_radius']),
             'inflation_dist': str(robot_params['radius']),
             'max_vel_x': str(robot_params['velocity_profile']['max_vel_x']),
             'max_vel_theta': str(robot_params['velocity_profile']['max_vel_theta']),
@@ -175,7 +210,8 @@ def generate_launch_description():
     ld = LaunchDescription()
 
     # Add any conditioned actions
-    ld.add_action(fake_driver_cmd)
+    ld.add_action(isr_m2_node_cmd)
+    ld.add_action(lidar_driver)
     ld.add_action(start_rviz_cmd)
     ld.add_action(amcl_cmd)
     ld.add_action(lifecycle_manager_cmd)

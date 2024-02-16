@@ -145,6 +145,41 @@ target_link_libraries(${ROBOT_EXEC_NAME}
   ${EXTERNAL_LIBS}
 )
 
+set(CONTROLLER_EXEC_NAME "keyboard_controller")
+set(CONTROLLER_library_name ${CONTROLLER_EXEC_NAME}_core)
+
+file(GLOB CONTROLLER_SRC_FILES "src/controller/*.cpp")
+list(REMOVE_ITEM CONTROLLER_SRC_FILES ${PROJECT_SOURCE_DIR}/src/controller/keyboard_controller.cpp)
+set(CONTROLLER_PANEL_HEADER_FILE "include/multibot2_robot/controller/controller_panel.h")
+
+add_library(${CONTROLLER_library_name} SHARED
+  ${CONTROLLER_SRC_FILES}
+  ${CONTROLLER_PANEL_HEADER_FILE}
+)
+
+target_include_directories(${CONTROLLER_library_name} PUBLIC
+  ${Qt6Core_INCLUDE_DIRS}
+  ${Qt6Widgets_INCLUDE_DIRS}
+  ${OGRE_INCLUDE_DIRS}
+)
+
+ament_target_dependencies(${CONTROLLER_library_name}
+  ${ROBOT_DEPENDENCIES}
+)
+
+target_compile_definitions(${CONTROLLER_library_name}
+  PUBLIC "PLUGINLIB__ENABLE_BOOST_FUNCTIONS"
+)
+
+add_executable(${CONTROLLER_EXEC_NAME}
+  ${PROJECT_SOURCE_DIR}/src/controller/keyboard_controller.cpp
+  ${CONTROLLER_PANEL_HEADER_FILE}
+)
+
+target_link_libraries(${CONTROLLER_EXEC_NAME}
+  ${CONTROLLER_library_name}
+  Qt6::Widgets
+)
 
 ################################################################################
 # Install
@@ -158,6 +193,18 @@ install(
 
 install(TARGETS
   ${ROBOT_EXEC_NAME}
+  DESTINATION lib/${PROJECT_NAME}
+)
+
+install(
+  TARGETS ${CONTROLLER_library_name}
+  ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib
+  RUNTIME DESTINATION bin
+)
+
+install(TARGETS
+  ${CONTROLLER_EXEC_NAME}
   DESTINATION lib/${PROJECT_NAME}
 )
 
