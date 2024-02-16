@@ -26,7 +26,7 @@ def generate_launch_description():
     # ISR_M2 Driver
     isr_m2_node_cmd = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(os.path.join(get_package_share_directory('multibot2_driver'), 'launch',
-                                                   'fake_driver_launch.py')),
+                                                   'isr_m2_node_launch.py')),
         launch_arguments={
             'robot_name': robot_params['name'],
             'odom_frame': robot_params['name'] + '/' + robot_params['odometry']['frame_id'],
