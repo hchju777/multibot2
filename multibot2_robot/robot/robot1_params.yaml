@@ -15,16 +15,16 @@
 
       type: "DiffDrive" # types: "DiffDrive" or "CarLike"
 
-      radius: 0.65
+      radius: 0.70
 
       goal_tolerance: 0.25
 
       avoidance_dist: 2.7
 
       velocity_profile:
-        max_vel_x: 0.3
+        max_vel_x: 0.6
         max_vel_theta: 0.4
-        acc_lim_x: 0.5
+        acc_lim_x: 1.0
         acc_lim_theta: 0.8
 
       wheels:
@@ -37,6 +37,8 @@
         child_frame_id: "base_link"
 
       laser:
+        type: "sick_tim" # sick_tim or hokuyo
+        hostname: '192.168.1.204'
         frame_id: "laser"
         scan_topic: "scan"
         offset_x: 0.0

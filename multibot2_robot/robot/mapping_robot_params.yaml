@@ -22,6 +22,8 @@
         child_frame_id: "base_link"
 
       laser:
+        type: "sick_tim" # sick_tim or hokuyo
+        hostname: '192.168.1.204'
         frame_id: "laser"
         scan_topic: "scan"
         offset_x: 0.0
