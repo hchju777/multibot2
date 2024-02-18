@@ -1,17 +1,17 @@
 /**:
   ros__parameters:
     robot:
-      name: "Robot1"
+      name: "Robot4"
 
       goal:
-        x: 15.6
+        x: 10.2
         y: 6.3
         theta: 0.0
 
       spawn: # Optional: Gazebo Initial Spwan Pose
-        x: 10.2
-        y: 6.3
-        theta: 0.0
+        x: 14.6
+        y: 3.2
+        theta: 1.57
 
       type: "DiffDrive" # types: "DiffDrive" or "CarLike"
 
@@ -27,7 +27,7 @@
       goal_tolerance: 0.25
 
       avoidance_dist: 3.0
-
+      
       velocity_profile:
         max_vel_x: 0.3
         max_vel_theta: 0.4
@@ -44,8 +44,8 @@
         child_frame_id: "base_link"
 
       laser:
-        type: "hokuyo" # sick_tim or hokuyo
-        hostname: '192.168.1.13'
+        type: "sick_tim" # sick_tim or hokuyo
+        hostname: '192.168.1.204'
         frame_id: "laser"
         scan_topic: "scan"
         offset_x: 0.0
