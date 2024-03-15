@@ -147,10 +147,15 @@ namespace multibot2_server::SubgoalGenerator::PIBT
 
             if (SubgoalUtil::find_subgoal(goal, candidate.second, subgoal))
             {
-                robot.subgoal().x() = CGAL::to_double(subgoal.x());
-                robot.subgoal().y() = CGAL::to_double(subgoal.y());
+                multibot2_util::Pose subgoal_pose(CGAL::to_double(subgoal.x()), CGAL::to_double(subgoal.y()), 0.0);
+                double sqDist = (subgoal_pose - robot.pose()).position().norm();
 
-                return true;
+                if (sqDist > 0.2)
+                {
+                    robot.subgoal() = subgoal_pose;
+
+                    return true;
+                }
             }
             _candidates.pop_front();
         }
