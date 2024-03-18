@@ -8,6 +8,9 @@
 #include <Eigen/Dense>
 #include <Eigen/Geometry>
 
+// Subgoal Generator
+#include "multibot2_server/subgoal_generator/subgoalgen_config.h"
+
 // CGAL includes
 #include <CGAL/Exact_predicates_exact_constructions_kernel.h>
 #include <CGAL/Delaunay_triangulation_2.h>
@@ -68,15 +71,14 @@ namespace multibot2_server::SubgoalGenerator
     public:
         BufferedVoronoiDiagram() {}
 
-        BufferedVoronoiDiagram(const std::vector<Site_2> &_points, const CGAL::Polygon_with_holes_2<Kernel> &_map_poly);
+        BufferedVoronoiDiagram(const Config::SharedPtr &_cfg, const std::vector<Site_2> &_points, const CGAL::Polygon_with_holes_2<Kernel> &_map_poly);
 
         BufferedVoronoiDiagram(const BufferedVoronoiDiagram &_buffered_voronoi_diagram)
         {
+            cfg_ = _buffered_voronoi_diagram.cfg_;
             vd_ = _buffered_voronoi_diagram.vd_;
             box_poly_ = _buffered_voronoi_diagram.box_poly_;
             map_poly_ = _buffered_voronoi_diagram.map_poly_;
-            min_offset_ = _buffered_voronoi_diagram.min_offset_;
-            stop_ratio_ = _buffered_voronoi_diagram.stop_ratio_;
         }
 
         ~BufferedVoronoiDiagram() { vd_.clear(); }
@@ -96,11 +98,10 @@ namespace multibot2_server::SubgoalGenerator
         {
             if (&_rhs != this)
             {
+                cfg_ = _rhs.cfg_;
                 vd_ = _rhs.vd_;
                 box_poly_ = _rhs.box_poly_;
                 map_poly_ = _rhs.map_poly_;
-                min_offset_ = _rhs.min_offset_;
-                stop_ratio_ = _rhs.stop_ratio_;
             }
 
             return *this;
@@ -126,14 +127,13 @@ namespace multibot2_server::SubgoalGenerator
             CGAL::Polygon_with_holes_2<Kernel> &_poly_w_holes);
 
     protected:
+        Config::SharedPtr cfg_;
+
         VD vd_;
 
         CGAL::Polygon_2<Kernel> box_poly_;
 
         CGAL::Polygon_with_holes_2<Kernel> map_poly_;
-
-        double min_offset_{2.7};
-        double stop_ratio_{0.1};
 
     }; // class BufferedVoronoiDiagram
 } // namespace multibot2_server::SubgoalGenerator

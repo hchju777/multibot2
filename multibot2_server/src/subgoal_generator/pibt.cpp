@@ -2,8 +2,8 @@
 
 namespace multibot2_server::SubgoalGenerator::PIBT
 {
-    Solver::Solver(const Robots &_robots, std::stack<std::string> _priority_graph, const CGAL::Polygon_with_holes_2<Kernel> &_map_poly)
-        : robots_(_robots)
+    Solver::Solver(const Config::SharedPtr &_cfg, const Robots &_robots, std::stack<std::string> _priority_graph, const CGAL::Polygon_with_holes_2<Kernel> &_map_poly)
+        : cfg_(_cfg), robots_(_robots)
     {
         priority_list_.clear();
         while (not(_priority_graph.empty()))
@@ -26,6 +26,8 @@ namespace multibot2_server::SubgoalGenerator::PIBT
 
     Solver::Solver(const Solver &_solver)
     {
+        cfg_ = _solver.cfg_;
+
         robots_ = _solver.robots_;
 
         bvc_generator_ = _solver.bvc_generator_;
@@ -41,6 +43,8 @@ namespace multibot2_server::SubgoalGenerator::PIBT
     {
         if (&_rhs != this)
         {
+            cfg_ = _rhs.cfg_;
+
             robots_ = _rhs.robots_;
 
             bvc_generator_ = _rhs.bvc_generator_;
@@ -115,7 +119,7 @@ namespace multibot2_server::SubgoalGenerator::PIBT
             points.push_back(Site_2(robot.pose().x(), robot.pose().y()));
         }
 
-        bvc_generator_ = std::make_shared<BufferedVoronoiDiagram>(points, _map_poly);
+        bvc_generator_ = std::make_shared<BufferedVoronoiDiagram>(cfg_, points, _map_poly);
 
         return true;
     }
@@ -150,7 +154,7 @@ namespace multibot2_server::SubgoalGenerator::PIBT
                 multibot2_util::Pose subgoal_pose(CGAL::to_double(subgoal.x()), CGAL::to_double(subgoal.y()), 0.0);
                 double sqDist = (subgoal_pose - robot.pose()).position().norm();
 
-                if (sqDist > 0.2)
+                if (sqDist > cfg_->pibt_.min_stopping_dist_)
                 {
                     robot.subgoal() = subgoal_pose;
 
@@ -232,7 +236,7 @@ namespace multibot2_server::SubgoalGenerator::PIBT
                                                         return _sum;
                                                     });
 
-            if (truncated_area < 0.2)
+            if (truncated_area < cfg_->pibt_.min_truncated_area_)
                 continue;
 
             candidates.emplace_back(neighborPair.first, truncated_polygon);
@@ -253,7 +257,7 @@ namespace multibot2_server::SubgoalGenerator::PIBT
             voronoi_cell_w_no_map.first = site;
             if (not(bvc_generator_->get_polygon(site, voronoi_cell_w_no_map.second)))
                 continue;
-            
+
             voronoi_diagram_w_no_map_.emplace(robot.name(), voronoi_cell_w_no_map);
 
             VoronoiCell voronoi_cell;

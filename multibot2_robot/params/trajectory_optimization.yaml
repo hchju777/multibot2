@@ -8,9 +8,9 @@ robot:
       # footprint_model.radius: 0.7
       footprint_model.type: "two_circles"
       footprint_model.front_offset: 0.0 # for type "two_circles"
-      footprint_model.front_radius: 0.55 # for type "two_circles"
+      footprint_model.front_radius: 0.7 # for type "two_circles"
       footprint_model.rear_offset: 0.4 # for type "two_circles"
-      footprint_model.rear_radius: 0.45 # for type "two_circles"
+      footprint_model.rear_radius: 0.6 # for type "two_circles"
       min_obstacle_dist: 0.2
       inflation_dist: 0.7
       costmap_converter_plugin: "costmap_converter::CostmapToPolygonsDBSMCCH"

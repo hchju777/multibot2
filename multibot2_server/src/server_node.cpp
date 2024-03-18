@@ -62,7 +62,11 @@ namespace multibot2_server
 
         instance_manager_ = std::make_shared<Instance_Manager>(nh_);
 
-        subgoal_generator_ = std::make_unique<SubgoalGenerator::Generator>();
+        subgoalgen_config_ = std::make_shared<SubgoalGenerator::Config>();
+        subgoalgen_config_->declareParameters(nh_);
+        subgoalgen_config_->loadRosParamFromNodeHandle(nh_);
+
+        subgoal_generator_ = std::make_unique<SubgoalGenerator::Generator>(subgoalgen_config_);
         subgoal_generator_->update_map_polygon(instance_manager_->global_costmap_ros()->getCostmap(),
                                                instance_manager_->static_obstacles());
 

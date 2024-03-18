@@ -8,6 +8,7 @@
 
 #include "multibot2_server/instance_manager.h"
 #include "multibot2_server/subgoal_generator/subgoal_generator.h"
+#include "multibot2_server/subgoal_generator/subgoalgen_config.h"
 #include "multibot2_server/server_panel.h"
 
 #include "multibot2_util/panel_util.h"
@@ -49,6 +50,7 @@ namespace multibot2_server
     protected:
         Instance_Manager::SharedPtr instance_manager_;
 
+        SubgoalGenerator::Config::SharedPtr subgoalgen_config_;
         SubgoalGenerator::Generator::UniquePtr subgoal_generator_;
 
         Panel::UniquePtr serverPanel_;

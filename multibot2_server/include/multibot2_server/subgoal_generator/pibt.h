@@ -6,6 +6,7 @@
 #include "multibot2_server/robot.h"
 #include "multibot2_server/subgoal_generator/buffered_voronoi_diagram.h"
 
+#include "multibot2_server/subgoal_generator/subgoalgen_config.h"
 #include "multibot2_server/subgoal_generator/pibt_candidates_util.h"
 #include "multibot2_server/subgoal_generator/pibt_subgoal_util.h"
 
@@ -26,7 +27,7 @@ namespace multibot2_server::SubgoalGenerator::PIBT
     public:
         Solver() {}
 
-        Solver(const Robots &_robots, std::stack<std::string> _priority_graph, const CGAL::Polygon_with_holes_2<Kernel> &_map_poly);
+        Solver(const Config::SharedPtr &_cfg, const Robots &_robots, std::stack<std::string> _priority_graph, const CGAL::Polygon_with_holes_2<Kernel> &_map_poly);
 
         Solver(const Solver &_solver);
 
@@ -72,6 +73,8 @@ namespace multibot2_server::SubgoalGenerator::PIBT
         bool is_in_the_same_face(const Point_2 &_p1, const Point_2 &_p2);
 
     protected:
+        Config::SharedPtr cfg_;
+
         Robots robots_;
 
         BufferedVoronoiDiagram::SharedPtr bvc_generator_;

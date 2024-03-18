@@ -4,6 +4,8 @@ namespace multibot2_server::SubgoalGenerator
 {
     Generator::Generator(const Generator &_generator)
     {
+        cfg_ = _generator.cfg_;
+
         robots_ = _generator.robots_;
 
         dynamic_graph_ = _generator.dynamic_graph_;
@@ -17,6 +19,8 @@ namespace multibot2_server::SubgoalGenerator
     {
         if (&_rhs != this)
         {
+            cfg_ = _rhs.cfg_;
+
             robots_ = _rhs.robots_;
 
             dynamic_graph_ = _rhs.dynamic_graph_;
@@ -112,7 +116,7 @@ namespace multibot2_server::SubgoalGenerator
             }
 
             Robots robotGroup;
-            VelocityObstacle::UniquePtr vo_generator = std::make_unique<VelocityObstacle>();
+            VelocityObstacle::UniquePtr vo_generator = std::make_unique<VelocityObstacle>(cfg_);
             for (const auto &vertexPair : group)
             {
                 std::string robotName = vertexPair.first;
@@ -129,7 +133,7 @@ namespace multibot2_server::SubgoalGenerator
                 robots_[robotName].VOCones() = vo_generator->robots()[robotName].VOCones();
             }
 
-            PIBT::Solver::SharedPtr solver = std::make_shared<PIBT::Solver>(robotGroup, priority_graph, map_poly_);
+            PIBT::Solver::SharedPtr solver = std::make_shared<PIBT::Solver>(cfg_, robotGroup, priority_graph, map_poly_);
 
             solvers_.push_back(solver);
         }
