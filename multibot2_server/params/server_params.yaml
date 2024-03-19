@@ -13,4 +13,4 @@
         
         pibt:
           min_stopping_dist: 0.25
-          min_truncated_area: 0.3
+          min_truncated_area: 0.2
