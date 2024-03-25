@@ -94,6 +94,10 @@ namespace multibot2_server
         {
             std::string robotName = robotPair.first;
 
+            instance_manager_->setFront(robotName, robotPair.second.front());
+            instance_manager_->setReplanTime(robotName, robotPair.second.replan_time());
+            instance_manager_->setSubgoal(robotName, robotPair.second.subgoal());
+
             geometry_msgs::msg::PoseStamped subgoal_pose;
             robotPair.second.subgoal().toPoseMsg(subgoal_pose.pose);
 

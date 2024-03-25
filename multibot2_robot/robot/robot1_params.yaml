@@ -15,18 +15,18 @@
 
       type: "DiffDrive" # types: "DiffDrive" or "CarLike"
 
-      radius: 0.70
+      radius: 1.0
 
       footprint_model:
         type: "two_circles"
         front_offset: 0.0 # for type "two_circles"
-        front_radius: 0.65 # for type "two_circles"
+        front_radius: 0.95 # for type "two_circles"
         rear_offset: 0.4 # for type "two_circles"
-        rear_radius: 0.55 # for type "two_circles"
+        rear_radius: 0.85 # for type "two_circles"
 
       goal_tolerance: 0.25
 
-      avoidance_dist: 3.0
+      avoidance_dist: 7.5
 
       velocity_profile:
         max_vel_x: 0.3

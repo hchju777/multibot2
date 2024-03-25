@@ -42,6 +42,8 @@ namespace multibot2_server::SubgoalGenerator
     protected:
         void generate_solvers();
 
+        bool check_if_need_to_replan(const DynamicGraph::Vertices &_group);
+
         void find_subgoals();
 
     protected:

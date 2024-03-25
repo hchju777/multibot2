@@ -79,7 +79,7 @@ namespace multibot2_robot
         robot_ros_.state_pub()->on_activate();
 
         robot_ros_.cmd_vel_pub() = nh_->create_publisher<geometry_msgs::msg::Twist>(
-            std::string{nh_->get_namespace()} + "/cmd_vel", qos);
+            std::string{nh_->get_namespace()} + "/cmd_vel", rclcpp::QoS(rclcpp::KeepLast(100)));
         robot_ros_.cmd_vel_pub()->on_activate();
 
         robot_ros_.odom_sub() = nh_->create_subscription<nav_msgs::msg::Odometry>(

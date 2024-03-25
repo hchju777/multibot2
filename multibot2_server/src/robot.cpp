@@ -3,12 +3,15 @@
 namespace multibot2_server
 {
     Robot::Robot(const Robot &_robot)
-    : multibot2_util::BaseRobotInfo(_robot)
+        : multibot2_util::BaseRobotInfo(_robot)
     {
         subgoal_ = _robot.subgoal_;
 
         neighbors_ = _robot.neighbors_;
         VOCones_ = _robot.VOCones_;
+
+        front_ = _robot.front_;
+        replan_time_ = _robot.replan_time_;
 
         task_queue_ = _robot.task_queue_;
         goal_queue_ = _robot.goal_queue_;
@@ -24,6 +27,9 @@ namespace multibot2_server
 
             neighbors_ = _rhs.neighbors_;
             VOCones_ = _rhs.VOCones_;
+
+            front_ = _rhs.front_;
+            replan_time_ = _rhs.replan_time_;
 
             task_queue_ = _rhs.task_queue_;
             goal_queue_ = _rhs.goal_queue_;
@@ -44,8 +50,10 @@ namespace multibot2_server
         neighbors_.swap(empty_neighbors);
         VOCones_.swap(empty_VOCones);
 
+        front_ = std::string();
+        replan_time_ = std::chrono::system_clock::now();
+
         task_queue_ = std::queue<Task>();
         goal_queue_ = std::queue<Task>();
-
     }
 } // namespace multibot2_server

@@ -110,9 +110,36 @@ namespace multibot2_server::SubgoalGenerator
             if (group.size() == 1)
             {
                 std::string robotName = group.begin()->first;
+
+                robots_[robotName].front() = robotName;
                 robots_[robotName].subgoal() = robots_[robotName].goal();
 
                 continue;
+            }
+
+            if (not(check_if_need_to_replan(group)))
+                continue;
+
+            // for (const auto &vertexPair : group)
+            // {
+            //     std::cout << "\t" << vertexPair.first;
+            // }
+            // std::cout << std::endl;
+
+            for (auto iter = group.begin(); iter != group.end(); ++iter)
+            {
+                Vertices::const_iterator front_it;
+
+                if (iter != group.begin())
+                    front_it = std::prev(iter, 1);
+                else
+                    front_it = std::prev(group.end(), 1);
+
+                std::string robotName = iter->first;
+                Robot &robot = robots_[robotName];
+
+                robot.front() = front_it->first;
+                robot.replan_time() = std::chrono::system_clock::now();
             }
 
             Robots robotGroup;
@@ -137,6 +164,39 @@ namespace multibot2_server::SubgoalGenerator
 
             solvers_.push_back(solver);
         }
+    }
+
+    bool Generator::check_if_need_to_replan(const DynamicGraph::Vertices &_group)
+    {
+        // Check group change
+        for (auto iter = _group.begin(); iter != _group.end(); ++iter)
+        {
+            Vertices::const_iterator front_it;
+
+            if (iter != _group.begin())
+                front_it = std::prev(iter, 1);
+            else
+                front_it = std::prev(_group.end(), 1);
+
+            std::string robotName = iter->first;
+
+            if (robots_[robotName].front() != front_it->first)
+                return true;
+        }
+
+        // Check Timeout
+        for (const auto &vertexPair : _group)
+        {
+            const Robot &robot = robots_[vertexPair.first];
+
+            std::chrono::duration<double> duration_sec = std::chrono::system_clock::now() - robot.replan_time();
+
+            // Todo: Parameterize
+            if (duration_sec.count() > 1.0)
+                return true;
+        }
+
+        return false;
     }
 
     void Generator::find_subgoals()
@@ -181,8 +241,8 @@ namespace multibot2_server::SubgoalGenerator
         reset();
 
         robots_ = _robots;
-        for (auto &robot : robots_)
-            robot.second.subgoal() = robot.second.pose();
+        // for (auto &robot : robots_)
+        //     robot.second.subgoal() = robot.second.pose();
 
         dynamic_graph_->addVertices(_robots);
     }

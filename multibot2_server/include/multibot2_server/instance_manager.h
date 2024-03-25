@@ -102,6 +102,12 @@ namespace multibot2_server
 
         void setMode(const std::string _robotName, const PanelUtil::Mode _mode);
 
+        void setFront(const std::string _robotName, const std::string _front) { robots_[_robotName].robot_.front() = _front; }
+
+        void setReplanTime(const std::string _robotName, const std::chrono::system_clock::time_point _replan_time) { robots_[_robotName].robot_.replan_time() = _replan_time; }
+
+        void setSubgoal(const std::string _robotName, const Pose &_subgoal) { robots_[_robotName].robot_.subgoal() = _subgoal; }
+
         void request_modeChange(const std::string _robotName, const PanelUtil::Mode _mode);
 
         void request_kill(const std::string _robotName);

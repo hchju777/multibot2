@@ -1,7 +1,7 @@
 /**:
   ros__parameters:
     server:
-      communication_range: 4.0
+      communication_range: 3.5
       subgoal_generator:
         duration: 0.05
 
