@@ -10,6 +10,8 @@ namespace multibot2_util
         pose_ = _baseRobotInfo.pose_;
         goal_ = _baseRobotInfo.goal_;
 
+        footprint_ = _baseRobotInfo.footprint_;
+
         radius_ = _baseRobotInfo.radius_;
 
         max_vel_x_ = _baseRobotInfo.max_vel_x_;
@@ -32,6 +34,8 @@ namespace multibot2_util
 
             pose_ = _rhs.pose_;
             goal_ = _rhs.goal_;
+
+            footprint_ = _rhs.footprint_;
 
             radius_ = _rhs.radius_;
 
@@ -56,6 +60,8 @@ namespace multibot2_util
 
         pose_.setZero();
         goal_.setZero();
+
+        footprint_ = Footprint();
 
         radius_ = std::numeric_limits<double>::quiet_NaN();
 

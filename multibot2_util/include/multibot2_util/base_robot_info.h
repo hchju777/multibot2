@@ -6,12 +6,79 @@
 
 #include <geometry_msgs/msg/twist.hpp>
 
+#include <geometry_msgs/msg/point.hpp>
+#include <geometry_msgs/msg/polygon.hpp>
+
 #include "multibot2_util/pose.h"
 
 namespace multibot2_util
 {
     class BaseRobotInfo
     {
+    public:
+        struct Footprint
+        {
+        public:
+            enum Type
+            {
+                POINTROBOT,
+                CIRCULARROBOT,
+                LINEROBOT,
+                PILLROBOT,
+                POLYGONROBOT
+            }; // enum Type
+
+        public:
+            Type type_{Type::POINTROBOT};
+
+            bool holonomic_;
+
+            geometry_msgs::msg::Point point1_;
+            geometry_msgs::msg::Point point2_;
+
+            double radius_;
+
+            geometry_msgs::msg::Polygon polygon_;
+
+        public:
+            friend std::ostream &operator<<(std::ostream &_os, const Footprint &_footprint)
+            {
+                std::string type_str;
+
+                switch (_footprint.type_)
+                {
+                case Footprint::Type::POINTROBOT:
+                    type_str = "Point";
+                    break;
+
+                case Footprint::Type::CIRCULARROBOT:
+                    type_str = "Circular";
+                    break;
+
+                case Footprint::Type::LINEROBOT:
+                    type_str = "Line";
+                    break;
+
+                case Footprint::Type::PILLROBOT:
+                    type_str = "Pill";
+                    break;
+
+                case Footprint::Type::POLYGONROBOT:
+                    type_str = "Polygon";
+                    break;
+
+                default:
+                    type_str = "None";
+                    break;
+                }
+
+                _os << type_str;
+
+                return _os;
+            }
+
+        }; // struct Footprint
+
     public:
         BaseRobotInfo() {}
 
@@ -29,6 +96,9 @@ namespace multibot2_util
 
         inline Pose &goal() { return goal_; }
         inline const Pose &goal() const { return goal_; }
+
+        inline Footprint &footprint() { return footprint_; }
+        inline const Footprint &footprint() const { return footprint_; }
 
         inline double &radius() { return radius_; }
         inline const double &radius() const { return radius_; }
@@ -76,7 +146,7 @@ namespace multibot2_util
         friend std::ostream &operator<<(std::ostream &_os, const BaseRobotInfo &_baseRobotInfo)
         {
             _os << "[" << _baseRobotInfo.name_ << "]"
-                << "\t Radius: " << _baseRobotInfo.radius_
+                << "\t Footprint Type: " << _baseRobotInfo.footprint_
                 << "\t Pose: " << _baseRobotInfo.pose_
                 << "\t Goal: " << _baseRobotInfo.goal_;
 
@@ -89,6 +159,8 @@ namespace multibot2_util
 
         Pose pose_;
         Pose goal_;
+
+        Footprint footprint_;
 
         double radius_{std::numeric_limits<double>::quiet_NaN()};
 
