@@ -27,7 +27,7 @@ namespace multibot2_server::SubgoalGenerator
 
             Robot::Cone VOCone;
             VOCone.neighbor_ = other.name();
-            VOCone.point_ = robot.pose().position() + other.velocity() * timeHorizon_;
+            VOCone.point_ = robot.pose().position() + other.velocity() * cfg_->velocity_obstacle_.timeHorizon_;
 
             if (distSq > combinedRadiusSq)
             {
@@ -48,7 +48,7 @@ namespace multibot2_server::SubgoalGenerator
             else
             {
                 // Collision
-                const Eigen::Vector2d w = relativeVelocity * timeHorizon_ - relativePosition;
+                const Eigen::Vector2d w = relativeVelocity * cfg_->velocity_obstacle_.timeHorizon_ - relativePosition;
                 const double wLength = w.norm();
                 const Eigen::Vector2d unitW = w / wLength;
 

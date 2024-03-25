@@ -1,6 +1,16 @@
 /**:
   ros__parameters:
     server:
-      communication_range: 4.0
+      communication_range: 3.5
       subgoal_generator:
         duration: 0.05
+
+        buffered_voronoi_diagram:
+          min_offset: 3.0
+        
+        velocity_obstacle:
+          timeHorizon: 0.05
+        
+        pibt:
+          min_stopping_dist: 0.25
+          min_truncated_area: 0.2

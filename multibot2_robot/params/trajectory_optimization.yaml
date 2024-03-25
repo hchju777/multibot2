@@ -8,9 +8,9 @@ robot:
       # footprint_model.radius: 0.7
       footprint_model.type: "two_circles"
       footprint_model.front_offset: 0.0 # for type "two_circles"
-      footprint_model.front_radius: 0.55 # for type "two_circles"
+      footprint_model.front_radius: 0.7 # for type "two_circles"
       footprint_model.rear_offset: 0.4 # for type "two_circles"
-      footprint_model.rear_radius: 0.45 # for type "two_circles"
+      footprint_model.rear_radius: 0.6 # for type "two_circles"
       min_obstacle_dist: 0.2
       inflation_dist: 0.7
       costmap_converter_plugin: "costmap_converter::CostmapToPolygonsDBSMCCH"
@@ -29,4 +29,4 @@ robot:
       acc_lim_x: 2.5
       acc_lim_theta: 3.2
       allow_init_with_backwards_motion: false
-      weight_kinematics_forward_drive: 150.0
+      weight_kinematics_forward_drive: 100.0

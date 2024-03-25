@@ -103,6 +103,12 @@ namespace multibot2_server
         inline std::vector<Cone> &VOCones() { return VOCones_; }
         inline const std::vector<Cone> &VOCones() const { return VOCones_; }
 
+        inline std::string &front() { return front_; }
+        inline const std::string &front() const { return front_; }
+
+        inline std::chrono::system_clock::time_point &replan_time() { return replan_time_; }
+        inline const std::chrono::system_clock::time_point &replan_time() const { return replan_time_; }
+
         inline std::queue<Task> &task_queue() { return task_queue_; }
         inline const std::queue<Task> &task_queue() const { return task_queue_; }
 
@@ -129,6 +135,9 @@ namespace multibot2_server
 
         Neighbors neighbors_;
         std::vector<Cone> VOCones_;
+
+        std::string front_;
+        std::chrono::system_clock::time_point replan_time_;
 
         std::queue<Task> task_queue_;
         std::queue<Task> goal_queue_;

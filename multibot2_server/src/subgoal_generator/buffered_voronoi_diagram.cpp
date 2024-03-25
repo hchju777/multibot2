@@ -2,8 +2,8 @@
 
 namespace multibot2_server::SubgoalGenerator
 {
-    BufferedVoronoiDiagram::BufferedVoronoiDiagram(const std::vector<Site_2> &_points, const CGAL::Polygon_with_holes_2<Kernel> &_map_poly)
-        : map_poly_(_map_poly)
+    BufferedVoronoiDiagram::BufferedVoronoiDiagram(const Config::SharedPtr &_cfg, const std::vector<Site_2> &_points, const CGAL::Polygon_with_holes_2<Kernel> &_map_poly)
+        : cfg_(_cfg), map_poly_(_map_poly)
     {
         Kernel::Iso_rectangle_2 bbox = CGAL::bounding_box(_points.begin(), _points.end());
 
@@ -11,7 +11,7 @@ namespace multibot2_server::SubgoalGenerator
         auto offset_y = CGAL::abs(bbox.ymax() - bbox.ymin()) / 2;
 
         auto offset = std::max(offset_x, offset_y);
-        offset = std::max(offset, CGAL::Lazy_exact_nt<boost::multiprecision::mpq_rational>(min_offset_));
+        offset = std::max(offset, CGAL::Lazy_exact_nt<boost::multiprecision::mpq_rational>(cfg_->buffered_voronoi_diagram_.min_offset_));
 
         box_poly_.push_back(Point_2(bbox.xmin() - offset, bbox.ymin() - offset));
         box_poly_.push_back(Point_2(bbox.xmax() + offset, bbox.ymin() - offset));
@@ -153,7 +153,6 @@ namespace multibot2_server::SubgoalGenerator
 
             if (truncated_poly_w_holes.empty())
                 return false;
-
 
             offset_poly_w_holes = truncated_poly_w_holes.front();
         }

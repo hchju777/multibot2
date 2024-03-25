@@ -62,7 +62,11 @@ namespace multibot2_server
 
         instance_manager_ = std::make_shared<Instance_Manager>(nh_);
 
-        subgoal_generator_ = std::make_unique<SubgoalGenerator::Generator>();
+        subgoalgen_config_ = std::make_shared<SubgoalGenerator::Config>();
+        subgoalgen_config_->declareParameters(nh_);
+        subgoalgen_config_->loadRosParamFromNodeHandle(nh_);
+
+        subgoal_generator_ = std::make_unique<SubgoalGenerator::Generator>(subgoalgen_config_);
         subgoal_generator_->update_map_polygon(instance_manager_->global_costmap_ros()->getCostmap(),
                                                instance_manager_->static_obstacles());
 
@@ -89,6 +93,10 @@ namespace multibot2_server
         for (const auto &robotPair : robots)
         {
             std::string robotName = robotPair.first;
+
+            instance_manager_->setFront(robotName, robotPair.second.front());
+            instance_manager_->setReplanTime(robotName, robotPair.second.replan_time());
+            instance_manager_->setSubgoal(robotName, robotPair.second.subgoal());
 
             geometry_msgs::msg::PoseStamped subgoal_pose;
             robotPair.second.subgoal().toPoseMsg(subgoal_pose.pose);

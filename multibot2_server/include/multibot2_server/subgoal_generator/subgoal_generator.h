@@ -10,6 +10,7 @@
 
 #include "multibot2_server/robot.h"
 
+#include "multibot2_server/subgoal_generator/subgoalgen_config.h"
 #include "multibot2_server/subgoal_generator/dynamic_graph.h"
 #include "multibot2_server/subgoal_generator/velocity_obstacle.h"
 #include "multibot2_server/subgoal_generator/pibt.h"
@@ -23,7 +24,7 @@ namespace multibot2_server::SubgoalGenerator
         typedef std::shared_ptr<Generator> SharedPtr;
 
     public:
-        Generator() { reset(); }
+        Generator(const Config::SharedPtr &_cfg) : cfg_(_cfg) { reset(); }
 
         Generator(const Generator &_generator);
 
@@ -41,6 +42,8 @@ namespace multibot2_server::SubgoalGenerator
     protected:
         void generate_solvers();
 
+        bool check_if_need_to_replan(const DynamicGraph::Vertices &_group);
+
         void find_subgoals();
 
     protected:
@@ -49,6 +52,8 @@ namespace multibot2_server::SubgoalGenerator
         void reset(const Robots &_robots);
 
     protected:
+        Config::SharedPtr cfg_;
+
         Robots robots_;
 
         DynamicGraph::SharedPtr dynamic_graph_{std::make_shared<DynamicGraph>()};
