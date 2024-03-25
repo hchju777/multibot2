@@ -43,7 +43,68 @@
 
 namespace multibot2_robot::teb_local_planner
 {
+void Obstacle::predictPoseFromTrajectory(double t, PoseSE2& pose, Eigen::Vector2d& speed) const
+{
+  if (not(withTrajectory_))
+    return;
 
+  auto right = std::upper_bound(trajectory_.begin(), trajectory_.end(), t,
+    [](double val, const multibot2_msgs::msg::TrajectoryPointSE2 point){ return val < point.time_from_start.sec; });
+
+  // extrapolate
+  if (right == trajectory_.end())
+  {
+    auto left = std::prev(trajectory_.end());
+    const double t_duration = t - left->time_from_start.sec;
+    pose.x() = left->pose.x + left->velocity.linear.x * t_duration;
+    pose.y() = left->pose.y + left->velocity.linear.y * t_duration;
+    pose.theta() =  left->pose.theta;
+    speed.x() = left->velocity.linear.x;
+    speed.y() = left->velocity.linear.y;
+  }
+  // else if (right == 0)
+  else if (right == trajectory_.begin())
+  {
+    RCLCPP_WARN(rclcpp::get_logger("teb_local_planner"),
+                "Obstacle::predictCentroidFromTrajectory(): Predicting past position at time: %f.", t);
+  }
+  // interpolate
+  else
+  {
+    auto left = std::prev(right);
+    const double deltaT = t - left->time_from_start.sec;
+    const double angleDiff = right->pose.theta - left->pose.theta;
+    const Eigen::Vector2d v(left->velocity.linear.x, left->velocity.linear.y);
+
+    if (!holonomic_ && angleDiff != 0)
+    {
+      pose.x() = left->pose.x + v.norm()/left->velocity.angular.z * ( sin(left->velocity.angular.z*deltaT+left->pose.theta) - sin(left->pose.theta) );
+      pose.y() = left->pose.y - v.norm()/left->velocity.angular.z * ( cos(left->velocity.angular.z*deltaT+left->pose.theta) - cos(left->pose.theta) );
+    }
+    else
+    {
+      pose.x() = left->pose.x + left->velocity.linear.x * deltaT;
+      pose.y() = left->pose.y + left->velocity.linear.y * deltaT;
+    }
+
+    pose.theta() = left->pose.theta + left->velocity.angular.z * deltaT;
+    speed.x() = left->velocity.linear.x;
+    speed.y() = left->velocity.linear.y;
+  }
+
+  return;
+}
+
+void Obstacle::setTrajectory(const std::vector<multibot2_msgs::msg::TrajectoryPointSE2>& trajectory, bool holonomic)
+{
+  trajectory_ = trajectory;
+  holonomic_ = holonomic;
+  withTrajectory_ = true;
+  dynamic_ = true;
+  PoseSE2 pred;
+  predictPoseFromTrajectory(0, pred);
+  pose_init_ = pred;
+}
 
 void PolygonObstacle::fixPolygonClosure()
 {
@@ -123,6 +184,11 @@ void PolygonObstacle::calcCentroid()
     }
     // calc centroid of that line
     centroid_ = 0.5*(vertices_[i_cand] + vertices_[j_cand]);
+  }
+
+  for (int i=0; i < noVertices(); ++i)
+  {
+    vertices_robot_.push_back(vertices_[i]-centroid_);
   }
 }
 
