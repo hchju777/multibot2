@@ -219,6 +219,7 @@ namespace multibot2_server::SubgoalGenerator
                 Robot robot = robotPair.second;
 
                 robots_[robotName].subgoal() = robot.subgoal();
+                robots_[robotName].higher_neighbors() = robot.higher_neighbors();
             }
         }
     }

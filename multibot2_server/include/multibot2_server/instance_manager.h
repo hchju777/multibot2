@@ -106,6 +106,8 @@ namespace multibot2_server
 
         const Robot_ROS &getRobot(const std::string _robotName) const;
 
+        const std::string &getMode() const { return mode_; }
+
         void setGoal(const std::string _robotName, const geometry_msgs::msg::Pose2D _goal);
 
         void setMode(const std::string _robotName, const PanelUtil::Mode _mode);
@@ -115,6 +117,8 @@ namespace multibot2_server
         void setReplanTime(const std::string _robotName, const std::chrono::system_clock::time_point _replan_time) { robots_[_robotName].robot_.replan_time() = _replan_time; }
 
         void setSubgoal(const std::string _robotName, const Pose &_subgoal) { robots_[_robotName].robot_.subgoal() = _subgoal; }
+
+        void setHigherNeighbors(const std::string _robotName, const std::set<std::string> _higher_neighbors) { robots_[_robotName].robot_.higher_neighbors() = _higher_neighbors; }
 
         void request_modeChange(const std::string _robotName, const PanelUtil::Mode _mode);
 
@@ -164,10 +168,12 @@ namespace multibot2_server
         costmap_converter::PolygonContainerConstPtr static_obstacles_;
 
         std::shared_ptr<nav2_navfn_planner::NavfnPlanner> navfn_global_planner_;
-        
+
         double communication_range_{4.0};
         double lookahead_dist_{5.0};
         double subgoal_generator_duration_{0.05};
+
+        std::string mode_{"V-PIBT"};
 
     }; // class Instance_Manager
 } // namespace multibot2_server

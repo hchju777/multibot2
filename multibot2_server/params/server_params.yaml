@@ -3,6 +3,8 @@
     server:
       communication_range: 3.5
       lookahead_dist: 7.5
+
+      mode: "V-PIBT" # "V-PIBT" "DTEB"
       
       subgoal_generator:
         duration: 0.05

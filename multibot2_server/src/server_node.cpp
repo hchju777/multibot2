@@ -78,30 +78,46 @@ namespace multibot2_server
         if (instance_manager_->robots().empty())
             return;
 
-        std::map<std::string, Robot> robots;
-        for (const auto &robot_rosPair : instance_manager_->robots())
+        if (instance_manager_->getMode() == "V-PIBT")
         {
-            const Robot &robot = robot_rosPair.second.robot_;
+            std::map<std::string, Robot> robots;
+            for (const auto &robot_rosPair : instance_manager_->robots())
+            {
+                const Robot &robot = robot_rosPair.second.robot_;
 
-            robots.emplace(robot.name(), robot);
+                robots.emplace(robot.name(), robot);
+            }
+
+            // std::chrono::system_clock::time_point start = std::chrono::system_clock::now();
+            subgoal_generator_->update_subgoals(robots);
+            // std::chrono::duration<double> sec = std::chrono::system_clock::now() - start;
+
+            for (const auto &robotPair : robots)
+            {
+                std::string robotName = robotPair.first;
+
+                instance_manager_->setFront(robotName, robotPair.second.front());
+                instance_manager_->setReplanTime(robotName, robotPair.second.replan_time());
+                instance_manager_->setSubgoal(robotName, robotPair.second.subgoal());
+                instance_manager_->setHigherNeighbors(robotName, robotPair.second.higher_neighbors());
+
+                geometry_msgs::msg::PoseStamped subgoal_pose;
+                robotPair.second.subgoal().toPoseMsg(subgoal_pose.pose);
+
+                instance_manager_->subgoal_pose_pub(robotName, subgoal_pose);
+            }
         }
-
-        // std::chrono::system_clock::time_point start = std::chrono::system_clock::now();
-        subgoal_generator_->update_subgoals(robots);
-        // std::chrono::duration<double> sec = std::chrono::system_clock::now() - start;
-
-        for (const auto &robotPair : robots)
+        else if (instance_manager_->getMode() == "DTEB")
         {
-            std::string robotName = robotPair.first;
+            for (const auto &robotPair : instance_manager_->robots())
+            {
+                std::string robotName = robotPair.first;
 
-            instance_manager_->setFront(robotName, robotPair.second.front());
-            instance_manager_->setReplanTime(robotName, robotPair.second.replan_time());
-            instance_manager_->setSubgoal(robotName, robotPair.second.subgoal());
+                geometry_msgs::msg::PoseStamped goal_pose;
+                robotPair.second.robot_.goal().toPoseMsg(goal_pose.pose);
 
-            geometry_msgs::msg::PoseStamped subgoal_pose;
-            robotPair.second.subgoal().toPoseMsg(subgoal_pose.pose);
-
-            instance_manager_->subgoal_pose_pub(robotName, subgoal_pose);
+                instance_manager_->goal_pose_pub(robotName, goal_pose);
+            }
         }
     }
 } // namespace multibot2_server

@@ -129,6 +129,7 @@ namespace multibot2_server::SubgoalGenerator::PIBT
         std::list<Candidate> _candidates, std::set<std::string> &_close, std::set<std::string> &_open)
     {
         Robot &robot = robots_[_robotName];
+        robot.higher_neighbors() = _close;
 
         _open.erase(_robotName);
 

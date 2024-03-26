@@ -8,6 +8,7 @@ namespace multibot2_server
         subgoal_ = _robot.subgoal_;
 
         neighbors_ = _robot.neighbors_;
+        higher_neighbors_ = _robot.higher_neighbors_;
         VOCones_ = _robot.VOCones_;
 
         front_ = _robot.front_;
@@ -26,6 +27,7 @@ namespace multibot2_server
             subgoal_ = _rhs.subgoal_;
 
             neighbors_ = _rhs.neighbors_;
+            higher_neighbors_ = _rhs.higher_neighbors_;
             VOCones_ = _rhs.VOCones_;
 
             front_ = _rhs.front_;
@@ -45,9 +47,11 @@ namespace multibot2_server
         subgoal_.setZero();
 
         Neighbors empty_neighbors;
+        std::set<std::string> empty_higher_neighbors;
         std::vector<Cone> empty_VOCones;
 
         neighbors_.swap(empty_neighbors);
+        higher_neighbors_.swap(empty_higher_neighbors);
         VOCones_.swap(empty_VOCones);
 
         front_ = std::string();

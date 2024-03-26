@@ -100,6 +100,9 @@ namespace multibot2_server
         inline Neighbors &neighbors() { return neighbors_; }
         inline const Neighbors &neighbors() const { return neighbors_; }
 
+        inline std::set<std::string> &higher_neighbors() { return higher_neighbors_; }
+        inline const std::set<std::string> &higher_neighbors() const { return higher_neighbors_; }
+
         inline std::vector<Cone> &VOCones() { return VOCones_; }
         inline const std::vector<Cone> &VOCones() const { return VOCones_; }
 
@@ -134,6 +137,7 @@ namespace multibot2_server
         multibot2_util::Pose subgoal_;
 
         Neighbors neighbors_;
+        std::set<std::string> higher_neighbors_;
         std::vector<Cone> VOCones_;
 
         std::string front_;

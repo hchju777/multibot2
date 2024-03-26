@@ -44,10 +44,12 @@ namespace multibot2_server
         nh_->declare_parameter("server.communication_range", communication_range_);
         nh_->declare_parameter("server.lookahead_dist", lookahead_dist_);
         nh_->declare_parameter("server.subgoal_generator.duration", subgoal_generator_duration_);
+        nh_->declare_parameter("server.mode", mode_);
 
         nh_->get_parameter_or("server.communication_range", communication_range_, communication_range_);
         nh_->get_parameter_or("server.lookahead_dist", lookahead_dist_, lookahead_dist_);
         nh_->get_parameter_or("server.subgoal_generator.duration", subgoal_generator_duration_, subgoal_generator_duration_);
+        nh_->get_parameter_or("server.mode", mode_, mode_);
 
         global_costmap_ros_->configure();
     }
@@ -525,16 +527,26 @@ namespace multibot2_server
                     }
                     neighbors_msg.neighbors.push_back(neighbor_msg);
 
-                    // Todo: This is just for DTEB. Need to improve for V-PIBT
-                    if (self.name().compare(neighbor.name()) > 0)
+                    if (mode_ == "V-PIBT")
                     {
-                        Robot_ROS &neighbor_ros = neighbor_it->second;
-                        dynamic_obstacles_msg.robots.push_back(neighbor_ros.local_trajectory_);
+                        if (self.higher_neighbors().contains(neighbor.name()))
+                        {
+                            Robot_ROS &neighbor_ros = neighbor_it->second;
+                            dynamic_obstacles_msg.robots.push_back(neighbor_ros.local_trajectory_);
+                        }
+                    }
+                    else if (mode_ == "DTEB")
+                    {
+                        if (self.name().compare(neighbor.name()) > 0)
+                        {
+                            Robot_ROS &neighbor_ros = neighbor_it->second;
+                            dynamic_obstacles_msg.robots.push_back(neighbor_ros.local_trajectory_);
+                        }
                     }
                 }
             }
             Robot_ROS &self_ros = self_it->second;
-            self_ros.neighbors_pub_->publish(neighbors_msg);            
+            self_ros.neighbors_pub_->publish(neighbors_msg);
             self_ros.dynamic_obstacles_pub_->publish(dynamic_obstacles_msg);
         }
     }
