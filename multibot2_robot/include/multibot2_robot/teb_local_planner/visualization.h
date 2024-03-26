@@ -47,6 +47,7 @@
 #include "multibot2_robot/teb_local_planner/robot_footprint_model.h"
 
 #include <multibot2_msgs/msg/feedback_msg.hpp>
+#include <multibot2_msgs/msg/robot_with_trajectory.hpp>
 
 // boost
 #include <boost/graph/adjacency_list.hpp>
@@ -214,6 +215,8 @@ public:
    */
   void publishFeedbackMessage(const TebOptimalPlanner& teb_planner, const ObstContainer& obstacles);
   
+  void publishTrajectory(const TebOptimalPlanner& teb_planner, const RobotFootprintModelPtr& robot_model);
+
   nav2_util::CallbackReturn on_configure();
   nav2_util::CallbackReturn on_activate();
   nav2_util::CallbackReturn on_deactivate();
@@ -246,7 +249,8 @@ protected:
   rclcpp_lifecycle::LifecyclePublisher<geometry_msgs::msg::PoseArray>::SharedPtr teb_poses_pub_; //!< Publisher for the trajectory pose sequence
   rclcpp_lifecycle::LifecyclePublisher<visualization_msgs::msg::Marker>::SharedPtr teb_marker_pub_; //!< Publisher for visualization markers
   rclcpp_lifecycle::LifecyclePublisher<multibot2_msgs::msg::FeedbackMsg>::SharedPtr feedback_pub_; //!< Publisher for the feedback message for analysis and debug purposes
-  
+  rclcpp_lifecycle::LifecyclePublisher<multibot2_msgs::msg::RobotWithTrajectory>::SharedPtr trajectory_pub_; //!< Publisher for the trajectory message for distributed teb
+
   const TebConfig* cfg_; //!< Config class that stores and manages all related parameters
   
   bool initialized_; //!< Keeps track about the correct initialization of this class

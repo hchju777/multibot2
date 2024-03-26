@@ -270,7 +270,7 @@ public:
     */
   void setTrajectory(const std::vector<multibot2_msgs::msg::TrajectoryPointSE2>& trajectory, bool holonomic);
 
-  const double getTrajectoryTotalTime() {return trajectory_.back().time_from_start.sec;}
+  double getTrajectoryTotalTime() {return double(trajectory_.back().time_from_start.sec);}
 
   void disableTrajectory() {withTrajectory_ = false;}
   void disableDynamic() {dynamic_ = false;}
@@ -938,7 +938,7 @@ public:
     return getMinimumDistance(point) <= min_dist;
   }
 
-  virtual bool checkLineIntersection(const Eigen::Vector2d& line_start, const Eigen::Vector2d& line_end, double min_dist=0) const
+  virtual bool checkLineIntersection(const Eigen::Vector2d& line_start, const Eigen::Vector2d& line_end, double /*min_dist=0*/) const
   {
     return check_line_segments_intersection_2d(line_start, line_end, start_, end_);
   }
@@ -1075,7 +1075,7 @@ private:
   Eigen::Vector2d centroid_;
 
 public:
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 }; // class PillObstacle
 
 /**
