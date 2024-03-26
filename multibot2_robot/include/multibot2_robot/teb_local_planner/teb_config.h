@@ -63,6 +63,7 @@ class TebConfig
 public:
   using UniquePtr = std::unique_ptr<TebConfig>;
   
+  std::string name; //!< Robot Name
   std::string odom_topic; //!< Topic name of the odometry message, provided by the robot driver or simulator
   std::string map_frame; //!< Global planning frame
 
@@ -227,7 +228,7 @@ public:
   */
   TebConfig()
   {
-
+    name = "Robot";
     odom_topic = "odom";
     map_frame = "odom";
 

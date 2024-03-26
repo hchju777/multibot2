@@ -52,6 +52,7 @@ void TebConfig::declareParameters(const nav2_util::LifecycleNode::SharedPtr nh, 
   const auto para = std::bind(para_, nh, _1,  _2, e); // use function para to declare parameters and their default value
 
   // Global
+  para("robot.name", Dv(this->name));
   para(nd + "odom_topic", Dv("odom_topic"));
   para(nd + "map_frame", Dv("map_frame"));
 
@@ -172,6 +173,7 @@ void TebConfig::declareParameters(const nav2_util::LifecycleNode::SharedPtr nh, 
 
 void TebConfig::loadRosParamFromNodeHandle(const nav2_util::LifecycleNode::SharedPtr nh, const std::string name)
 {
+  nh->get_parameter_or("robot.name", this->name, this->name);
   nh->get_parameter_or(name + "." + "odom_topic", odom_topic, odom_topic);
   nh->get_parameter_or(name + "." + "map_frame", map_frame, map_frame);
   

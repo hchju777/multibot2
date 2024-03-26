@@ -24,6 +24,8 @@
 #include "multibot2_msgs/msg/robot_state.hpp"
 #include "multibot2_msgs/msg/task.hpp"
 #include "multibot2_msgs/msg/neighbors.hpp"
+#include "multibot2_msgs/msg/robot_with_trajectory.hpp"
+#include "multibot2_msgs/msg/robot_with_trajectory_array.hpp"
 #include "multibot2_msgs/srv/queue_rivision.hpp"
 
 using namespace multibot2_util;
@@ -36,6 +38,8 @@ namespace multibot2_server
         typedef multibot2_msgs::msg::Task Task;
         typedef multibot2_msgs::msg::Neighbor Neighbor;
         typedef multibot2_msgs::msg::Neighbors Neighbors;
+        typedef multibot2_msgs::msg::RobotWithTrajectory RobotWithTrajectory;
+        typedef multibot2_msgs::msg::RobotWithTrajectoryArray RobotWithTrajectoryArray;
         typedef multibot2_msgs::srv::QueueRivision QueueRivision;
 
         Robot robot_;
@@ -44,6 +48,8 @@ namespace multibot2_server
 
         rclcpp::Time last_update_time_;
         rclcpp::Time prior_update_time_;
+
+        RobotWithTrajectory local_trajectory_;
 
         rclcpp::Subscription<State>::SharedPtr state_sub_;
         rclcpp_lifecycle::LifecyclePublisher<geometry_msgs::msg::Twist>::SharedPtr cmd_vel_pub_;
@@ -55,6 +61,8 @@ namespace multibot2_server
         rclcpp_lifecycle::LifecyclePublisher<Neighbors>::SharedPtr neighbors_pub_;
         rclcpp::Client<PanelUtil::ModeSelection>::SharedPtr modeFromServer_;
         rclcpp::Service<PanelUtil::ModeSelection>::SharedPtr modeFromRobot_;
+        rclcpp::Subscription<RobotWithTrajectory>::SharedPtr local_trajectory_sub_;
+        rclcpp_lifecycle::LifecyclePublisher<RobotWithTrajectoryArray>::SharedPtr dynamic_obstacles_pub_;
         rclcpp::Service<QueueRivision>::SharedPtr queue_revision_;
     }; // struct Robot_ROS
 
@@ -128,6 +136,8 @@ namespace multibot2_server
 
         void robotState_callback(const Robot_ROS::State::SharedPtr _state_msg);
 
+        void local_trajectory_callback(const Robot_ROS::RobotWithTrajectory::SharedPtr _trajectory_msg);
+
         void update()
         {
             update_goals();
@@ -154,7 +164,9 @@ namespace multibot2_server
         costmap_converter::PolygonContainerConstPtr static_obstacles_;
 
         std::shared_ptr<nav2_navfn_planner::NavfnPlanner> navfn_global_planner_;
+        
         double communication_range_{4.0};
+        double lookahead_dist_{5.0};
         double subgoal_generator_duration_{0.05};
 
     }; // class Instance_Manager

@@ -459,6 +459,7 @@ namespace multibot2_robot::teb_local_planner
     multibot2_msgs::msg::RobotWithTrajectory msg;
     msg.header.stamp = nh_->now();
     msg.header.frame_id = cfg_->map_frame;
+    msg.name = cfg_->name;
 
     std::vector<multibot2_msgs::msg::TrajectoryPointSE2> trajectory;
     teb_planner.getFullTrajectorySE2(trajectory);

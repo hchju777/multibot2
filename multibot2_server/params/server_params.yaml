@@ -2,6 +2,8 @@
   ros__parameters:
     server:
       communication_range: 3.5
+      lookahead_dist: 7.5
+      
       subgoal_generator:
         duration: 0.05
 
