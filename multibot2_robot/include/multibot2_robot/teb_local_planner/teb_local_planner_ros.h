@@ -59,6 +59,9 @@
 #include <visualization_msgs/msg/marker_array.hpp>
 #include <visualization_msgs/msg/marker.hpp>
 #include <costmap_converter_msgs/msg/obstacle_msg.hpp>
+#include "multibot2_msgs/msg/trajectory_point_se2.hpp"
+#include "multibot2_msgs/msg/robot_with_trajectory.hpp"
+#include "multibot2_msgs/msg/robot_with_trajectory_array.hpp"
 
 // transforms
 #include <tf2_ros/transform_listener.h>
@@ -77,6 +80,10 @@ namespace multibot2_robot::teb_local_planner
 {
   using TFBufferPtr = std::shared_ptr<tf2_ros::Buffer>;
   using CostmapROSPtr = std::shared_ptr<nav2_costmap_2d::Costmap2DROS>;
+
+  typedef multibot2_msgs::msg::TrajectoryPointSE2 TrajectoryPointSE2;
+  typedef multibot2_msgs::msg::RobotWithTrajectory RobotWithTrajectory;
+  typedef multibot2_msgs::msg::RobotWithTrajectoryArray RobotWithTrajectoryArray;
 
   /**
    * @class TebLocalPlannerROS
@@ -214,6 +221,13 @@ namespace multibot2_robot::teb_local_planner
     void updateObstacleContainerWithCustomObstacles();
 
     /**
+     * @brief Update internal dynamic obstacle vector based on custom messages received via subscriber
+     * @remarks All previous obstacles are NOT cleared. Call this method after other update methods.
+     * @sa updateObstacleContainerWithCostmap, updateObstacleContainerWithCostmapConverter
+     */
+    void updateObstacleContainerWithCustomDynamicObstacles();
+
+    /**
      * @brief Update internal via-point container based on the current reference plan
      * @remarks All previous via-points will be cleared.
      * @param transformed_plan (local) portion of the global plan (which is already transformed to the planning frame)
@@ -236,6 +250,12 @@ namespace multibot2_robot::teb_local_planner
      * @param obst_msg pointer to the message containing a list of polygon shaped obstacles
      */
     void customObstacleCB(const costmap_converter_msgs::msg::ObstacleArrayMsg::ConstSharedPtr obst_msg);
+
+    /**
+     * @brief Callback for custom obstacles that are not obtained from the costmap
+     * @param obst_msg pointer to the message containing a list of polygon shaped obstacles
+     */
+    void customDynamicObstacleCB(const RobotWithTrajectoryArray::ConstSharedPtr dyn_obst_msg);
 
     /**
      * @brief Callback for custom via-points
@@ -374,6 +394,10 @@ namespace multibot2_robot::teb_local_planner
     rclcpp::Subscription<costmap_converter_msgs::msg::ObstacleArrayMsg>::SharedPtr custom_obst_sub_; //!< Subscriber for custom obstacles received via a ObstacleMsg.
     std::mutex custom_obst_mutex_;                                                                   //!< Mutex that locks the obstacle array (multi-threaded)
     costmap_converter_msgs::msg::ObstacleArrayMsg custom_obstacle_msg_;                              //!< Copy of the most recent obstacle message
+
+    rclcpp::Subscription<RobotWithTrajectoryArray>::SharedPtr custom_dyn_obst_sub_; //!< Subscriber for custom dynamic obstacles received via a ObstacleMsg.
+    std::mutex custom_dyn_obst_mutex_;                                              //!< Mutex that locks the dynamic obstacle array (multi-threaded)
+    RobotWithTrajectoryArray custom_dyn_obstacle_msg_;                              //!< Copy of the most recent dynamic obstacle message
 
     rclcpp::Subscription<nav_msgs::msg::Path>::SharedPtr via_points_sub_; //!< Subscriber for custom via-points received via a Path msg.
     bool custom_via_points_active_;                                       //!< Keep track whether valid via-points have been received from via_points_sub_

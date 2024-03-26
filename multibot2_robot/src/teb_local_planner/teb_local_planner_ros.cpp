@@ -174,6 +174,12 @@ namespace multibot2_robot::teb_local_planner
           rclcpp::SystemDefaultsQoS(),
           std::bind(&TebLocalPlannerROS::customObstacleCB, this, std::placeholders::_1));
 
+      // setup callback for custom obstacles
+      custom_dyn_obst_sub_ = node->create_subscription<RobotWithTrajectoryArray>(
+          "dynamic_obstacles",
+          rclcpp::SystemDefaultsQoS(),
+          std::bind(&TebLocalPlannerROS::customDynamicObstacleCB, this, std::placeholders::_1));
+
       // setup callback for custom via-points
       via_points_sub_ = node->create_subscription<nav_msgs::msg::Path>(
           "via_points",
@@ -349,6 +355,7 @@ namespace multibot2_robot::teb_local_planner
 
     // also consider custom obstacles (must be called after other updates, since the container is not cleared)
     updateObstacleContainerWithCustomObstacles();
+    updateObstacleContainerWithCustomDynamicObstacles();
 
     // Do not allow config changes during the following optimization step
     std::lock_guard<std::mutex> cfg_lock(cfg_->configMutex());
@@ -591,6 +598,146 @@ namespace multibot2_robot::teb_local_planner
         // Set velocity, if obstacle is moving
         if (!obstacles_.empty())
           obstacles_.back()->setCentroidVelocity(custom_obstacle_msg_.obstacles[i].velocities, custom_obstacle_msg_.obstacles[i].orientation);
+      }
+    }
+  }
+
+  void TebLocalPlannerROS::updateObstacleContainerWithCustomDynamicObstacles()
+  {
+    // Add custom obstacles obtained via message
+    std::lock_guard<std::mutex> l(custom_dyn_obst_mutex_);
+
+    if (!custom_dyn_obstacle_msg_.robots.empty())
+    {
+      for (const auto &curr_obstacle : custom_dyn_obstacle_msg_.robots)
+      {
+        // We only use the global header to specify the obstacle coordinate system instead of individual ones
+        Eigen::Affine3d obstacle_to_map_eig;
+        double theta_offset = 0.0;
+        geometry_msgs::msg::TransformStamped obstacle_to_map;
+        try
+        {
+          obstacle_to_map = tf_->lookupTransform(
+              global_frame_, tf2::timeFromSec(0),
+              curr_obstacle.header.frame_id, tf2::timeFromSec(0),
+              curr_obstacle.header.frame_id, tf2::durationFromSec(0.5));
+          obstacle_to_map_eig = tf2::transformToEigen(obstacle_to_map);
+          theta_offset = tf2::getYaw(obstacle_to_map.transform.rotation);
+          // tf2::fromMsg(obstacle_to_map.transform, obstacle_to_map_eig);
+        }
+        catch (const tf2::TransformException &ex)
+        {
+          RCLCPP_ERROR(logger_, "%s", ex.what());
+          obstacle_to_map_eig.setIdentity();
+        }
+
+        // time passed since the creation of message
+        rclcpp::Duration time_offset = clock_->now() - curr_obstacle.header.stamp;
+
+        // make a copy from the original message, otherwise will be recursely offset in incorrect way
+        std::vector<TrajectoryPointSE2, std::allocator<TrajectoryPointSE2>> trajectory_copy(curr_obstacle.trajectory);
+
+        // compute relative time from now, and transform pose
+        for (unsigned int j = 0; j < trajectory_copy.size(); j++)
+        {
+          trajectory_copy.at(j).time_from_start = durationFromSec(trajectory_copy.at(j).time_from_start.sec - time_offset.seconds());
+
+          // T = T2*T1 = (R2 t2) (R1 t1) = (R2*R1 R2*t1+t2)
+          //             (0   1) (0   1)   (0            1)
+          trajectory_copy.at(j).pose.x = curr_obstacle.trajectory.at(j).pose.x * cos(theta_offset) - curr_obstacle.trajectory.at(j).pose.y * sin(theta_offset) + obstacle_to_map.transform.translation.x;
+          trajectory_copy.at(j).pose.y = curr_obstacle.trajectory.at(j).pose.x * sin(theta_offset) + curr_obstacle.trajectory.at(j).pose.y * cos(theta_offset) + obstacle_to_map.transform.translation.y;
+
+          trajectory_copy.at(j).velocity.linear.x = curr_obstacle.trajectory.at(j).velocity.linear.x * cos(theta_offset) - curr_obstacle.trajectory.at(j).velocity.linear.y * sin(theta_offset);
+          trajectory_copy.at(j).velocity.linear.y = curr_obstacle.trajectory.at(j).velocity.linear.x * sin(theta_offset) + curr_obstacle.trajectory.at(j).velocity.linear.y * cos(theta_offset);
+
+          trajectory_copy.at(j).pose.theta = curr_obstacle.trajectory.at(j).pose.theta + theta_offset;
+        }
+
+        ObstaclePtr obst_ptr(NULL);
+        PoseSE2 pose_init;
+        if (curr_obstacle.footprint.type == multibot2_msgs::msg::RobotFootprint::CIRCULARROBOT)
+        {
+          Eigen::Vector2d speed_init;
+          CircularObstacle *obstacle = new CircularObstacle;
+          obstacle->setTrajectory(trajectory_copy, curr_obstacle.footprint.holonomic);
+          obstacle->predictPoseFromTrajectory(0.0, pose_init, speed_init);
+          obstacle->x() = pose_init.x();
+          obstacle->y() = pose_init.y();
+          obstacle->radius() = curr_obstacle.footprint.radius;
+          obstacle->setCentroidVelocity(speed_init);
+          obst_ptr = ObstaclePtr(obstacle);
+        }
+        else if (curr_obstacle.footprint.type == multibot2_msgs::msg::RobotFootprint::POINTROBOT)
+        {
+          Eigen::Vector2d speed_init;
+          PointObstacle *obstacle = new PointObstacle;
+          obstacle->setTrajectory(trajectory_copy, curr_obstacle.footprint.holonomic);
+          obstacle->predictPoseFromTrajectory(0.0, pose_init, speed_init);
+          obstacle->x() = pose_init.x();
+          obstacle->y() = pose_init.y();
+          obstacle->setCentroidVelocity(speed_init);
+          obst_ptr = ObstaclePtr(obstacle);
+        }
+        else if (curr_obstacle.footprint.type == multibot2_msgs::msg::RobotFootprint::LINEROBOT)
+        {
+          Eigen::Vector2d start_robot(curr_obstacle.footprint.point1.x, curr_obstacle.footprint.point1.y);
+          Eigen::Vector2d end_robot(curr_obstacle.footprint.point2.x, curr_obstacle.footprint.point2.y);
+          Eigen::Vector2d speed_init;
+          LineObstacle *obstacle = new LineObstacle;
+          Eigen::Vector2d start, end;
+          obstacle->setTrajectory(trajectory_copy, curr_obstacle.footprint.holonomic);
+          obstacle->predictPoseFromTrajectory(0.0, pose_init, speed_init);
+          obstacle->transformToWorld(pose_init, start_robot, end_robot, start, end);
+          obstacle->setStart(start);
+          obstacle->setEnd(end);
+          obstacle->setCentroidVelocity(speed_init);
+          obst_ptr = ObstaclePtr(obstacle);
+        }
+        else if (curr_obstacle.footprint.type == multibot2_msgs::msg::RobotFootprint::PILLROBOT)
+        {
+          Eigen::Vector2d start_robot(curr_obstacle.footprint.point1.x, curr_obstacle.footprint.point1.y);
+          Eigen::Vector2d end_robot(curr_obstacle.footprint.point2.x, curr_obstacle.footprint.point2.y);
+          Eigen::Vector2d speed_init;
+          PillObstacle *obstacle = new PillObstacle;
+          Eigen::Vector2d start, end;
+          obstacle->setTrajectory(trajectory_copy, curr_obstacle.footprint.holonomic);
+          obstacle->predictPoseFromTrajectory(0.0, pose_init, speed_init);
+          obstacle->transformToWorld(pose_init, start_robot, end_robot, start, end);
+          obstacle->setStart(start);
+          obstacle->setEnd(end);
+          obstacle->setRadius(curr_obstacle.footprint.radius);
+          obstacle->setCentroidVelocity(speed_init);
+          obst_ptr = ObstaclePtr(obstacle);
+        }
+        else if (curr_obstacle.footprint.type == multibot2_msgs::msg::RobotFootprint::POLYGONROBOT)
+        {
+          Point2dContainer vertices_robocentric;
+          for (const auto &vertex : curr_obstacle.footprint.polygon.points)
+          {
+            Eigen::Vector2d pos(vertex.x, vertex.y);
+            vertices_robocentric.push_back(pos);
+          }
+
+          Eigen::Vector2d speed_init;
+          Point2dContainer vertices;
+          PolygonObstacle *polyobst = new PolygonObstacle;
+          polyobst->setTrajectory(trajectory_copy, curr_obstacle.footprint.holonomic);
+          polyobst->predictPoseFromTrajectory(0.0, pose_init, speed_init);
+          polyobst->transformToWorld(pose_init, vertices_robocentric, vertices);
+
+          for (const auto &vertex : vertices)
+            polyobst->pushBackVertex(vertex);
+
+          polyobst->finalizePolygon();
+          obst_ptr = ObstaclePtr(polyobst);
+        }
+        else
+        {
+          RCLCPP_WARN(nh_->get_logger(), "Invalid custom obstalce received. Invalid Type. Skipping...");
+          continue;
+        }
+
+        obstacles_.push_back(obst_ptr);
       }
     }
   }
@@ -992,6 +1139,12 @@ namespace multibot2_robot::teb_local_planner
   {
     std::lock_guard<std::mutex> l(custom_obst_mutex_);
     custom_obstacle_msg_ = *obst_msg;
+  }
+
+  void TebLocalPlannerROS::customDynamicObstacleCB(const RobotWithTrajectoryArray::ConstSharedPtr dyn_obst_msg)
+  {
+    std::lock_guard<std::mutex> l(custom_dyn_obst_mutex_);
+    custom_dyn_obstacle_msg_ = *dyn_obst_msg;
   }
 
   void TebLocalPlannerROS::customViaPointsCB(const nav_msgs::msg::Path::ConstSharedPtr via_points_msg)

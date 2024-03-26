@@ -2,7 +2,7 @@
   ros__parameters:
     server:
       communication_range: 3.5
-      lookahead_dist: 7.5
+      lookahead_dist: 5.0
 
       mode: "V-PIBT" # "V-PIBT" "DTEB"
       
