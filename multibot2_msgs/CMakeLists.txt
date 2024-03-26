@@ -39,10 +39,14 @@ set(msg_files
   "msg/Neighbor.msg"
   "msg/Neighbors.msg"
   "msg/RobotConfig.msg"
+  "msg/RobotFootprint.msg"
+  "msg/RobotWithTrajectory.msg"
+  "msg/RobotWithTrajectoryArray.msg"
   "msg/RobotState.msg"
   "msg/Task.msg"
   "msg/TrajectoryMsg.msg"
   "msg/TrajectoryPointMsg.msg"
+  "msg/TrajectoryPointSE2.msg"
 )
 
 set(srv_files

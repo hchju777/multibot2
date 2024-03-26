@@ -75,6 +75,7 @@
 #include <geometry_msgs/msg/pose_stamped.hpp>
 #include <multibot2_msgs/msg/trajectory_msg.hpp>
 #include <multibot2_msgs/msg/trajectory_point_msg.hpp>
+#include <multibot2_msgs/msg/trajectory_point_se2.hpp>
 #include <nav_msgs/msg/odometry.hpp>
 
 #include <dwb_critics/obstacle_footprint.hpp>
@@ -500,6 +501,19 @@ public:
    */
   void getFullTrajectory(std::vector<multibot2_msgs::msg::TrajectoryPointMsg>& trajectory) const;
   
+  /**
+   * @brief Return the complete trajectory including poses, velocity profiles and temporal information
+   * 
+   * It is useful for evaluation and debugging purposes or for open-loop control.
+   * Since the velocity obtained using difference quotients is the mean velocity between consecutive poses,
+   * the velocity at each pose at time stamp k is obtained by taking the average between both velocities.
+   * The velocity of the first pose is v_start (provided initial value) and the last one is v_goal (usually zero, if free_goal_vel is off).
+   * See getVelocityProfile() for the list of velocities between consecutive points.
+   * @todo The acceleration profile is not added at the moment.
+   * @param[out] trajectory the resulting trajectory
+   */
+  void getFullTrajectorySE2(std::vector<multibot2_msgs::msg::TrajectoryPointSE2>& trajectory) const;
+
   /**
    * @brief Check whether the planned trajectory is feasible or not.
    * 

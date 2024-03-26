@@ -454,6 +454,82 @@ namespace multibot2_robot::teb_local_planner
     feedback_pub_->publish(msg);
   }
 
+  void TebVisualization::publishTrajectory(const TebOptimalPlanner& teb_planner, const RobotFootprintModelPtr& robot_model)
+  {
+    multibot2_msgs::msg::RobotWithTrajectory msg;
+    msg.header.stamp = nh_->now();
+    msg.header.frame_id = cfg_->map_frame;
+    msg.name = cfg_->name;
+
+    std::vector<multibot2_msgs::msg::TrajectoryPointSE2> trajectory;
+    teb_planner.getFullTrajectorySE2(trajectory);
+    msg.trajectory = trajectory;
+
+    msg.footprint.holonomic = (std::fabs(cfg_->robot.max_vel_y) > 1e-8);
+
+    if (std::dynamic_pointer_cast<PointRobotFootprint>(robot_model) != nullptr)
+    {
+      msg.footprint.type = 1;
+    }
+    else if (std::dynamic_pointer_cast<CircularRobotFootprint>(robot_model) != nullptr)
+    {
+      std::shared_ptr<CircularRobotFootprint> footprint = std::dynamic_pointer_cast<CircularRobotFootprint>(robot_model);
+
+      msg.footprint.type = 2;
+      msg.footprint.radius = footprint->getInscribedRadius();
+    }
+    else if (std::dynamic_pointer_cast<LineRobotFootprint>(robot_model) != nullptr)
+    {
+      std::shared_ptr<LineRobotFootprint> footprint = std::dynamic_pointer_cast<LineRobotFootprint>(robot_model);
+
+      msg.footprint.type = 3;
+
+      Eigen::Vector2d start = footprint->getLineStart();
+      msg.footprint.point1.x = start.x();
+      msg.footprint.point1.y = start.y();
+      msg.footprint.point1.z = 0.0;
+
+      Eigen::Vector2d end = footprint->getLineEnd();
+      msg.footprint.point2.x = end.x();
+      msg.footprint.point2.y = end.y();
+      msg.footprint.point2.y = 0.0;
+    }
+    else if (std::dynamic_pointer_cast<TwoCirclesRobotFootprint>(robot_model) != nullptr)
+    {
+      std::shared_ptr<TwoCirclesRobotFootprint> footprint = std::dynamic_pointer_cast<TwoCirclesRobotFootprint>(robot_model);
+
+      msg.footprint.type = 4;
+
+      double front = footprint->getFrontOffset();
+      double rear = footprint->getRearOffset();
+
+      msg.footprint.point1.x = front;
+      msg.footprint.point1.y = 0.0;
+      msg.footprint.point1.z = 0.0;
+
+      msg.footprint.point2.x = rear;
+      msg.footprint.point2.y = 0.0;
+      msg.footprint.point2.z = 0.0;
+
+      msg.footprint.radius = std::max(footprint->getFrontRadius(), footprint->getRearOffset());
+    }
+    else if (std::dynamic_pointer_cast<PolygonRobotFootprint>(robot_model) != nullptr)
+    {
+      std::shared_ptr<PolygonRobotFootprint> footprint = std::dynamic_pointer_cast<PolygonRobotFootprint>(robot_model);
+
+      msg.footprint.type = 5;
+
+      geometry_msgs::msg::Polygon polygon;
+      footprint->getVertices(polygon);
+      msg.footprint.polygon = polygon;
+    }
+    else
+    {
+    }
+
+    trajectory_pub_->publish(msg);
+  }
+
   std_msgs::msg::ColorRGBA TebVisualization::toColorMsg(double a, double r, double g, double b)
   {
     std_msgs::msg::ColorRGBA color;
@@ -482,6 +558,7 @@ namespace multibot2_robot::teb_local_planner
     teb_poses_pub_ = nh_->create_publisher<geometry_msgs::msg::PoseArray>("teb_poses", 1);
     teb_marker_pub_ = nh_->create_publisher<visualization_msgs::msg::Marker>("teb_markers", 1);
     feedback_pub_ = nh_->create_publisher<multibot2_msgs::msg::FeedbackMsg>("teb_feedback", 1);
+    trajectory_pub_ = nh_->create_publisher<multibot2_msgs::msg::RobotWithTrajectory>("local_trajectory", 1);
 
     initialized_ = true;
     return nav2_util::CallbackReturn::SUCCESS;
@@ -495,6 +572,7 @@ namespace multibot2_robot::teb_local_planner
     teb_poses_pub_->on_activate();
     teb_marker_pub_->on_activate();
     feedback_pub_->on_activate();
+    trajectory_pub_->on_activate();
     return nav2_util::CallbackReturn::SUCCESS;
   }
 
@@ -506,6 +584,7 @@ namespace multibot2_robot::teb_local_planner
     teb_poses_pub_->on_deactivate();
     teb_marker_pub_->on_deactivate();
     feedback_pub_->on_deactivate();
+    trajectory_pub_->on_deactivate();
     return nav2_util::CallbackReturn::SUCCESS;
   }
 
@@ -517,6 +596,7 @@ namespace multibot2_robot::teb_local_planner
     teb_poses_pub_.reset();
     teb_marker_pub_.reset();
     feedback_pub_.reset();
+    trajectory_pub_.reset();
 
     return nav2_util::CallbackReturn::SUCCESS;
   }

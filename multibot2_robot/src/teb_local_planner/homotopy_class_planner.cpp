@@ -173,6 +173,8 @@ void HomotopyClassPlanner::visualize()
         if (best_idx>=0)
           visualization_->publishFeedbackMessage(tebs_, (unsigned int) best_idx, *obstacles_);
       }
+
+      visualization_->publishTrajectory(*best_teb_, robot_model_);
     }
   }
   else RCLCPP_DEBUG(rclcpp::get_logger("teb_local_planner"), "Ignoring HomotopyClassPlanner::visualize() call, since no visualization class was instantiated before.");

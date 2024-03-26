@@ -24,6 +24,8 @@
 #include "multibot2_msgs/msg/robot_state.hpp"
 #include "multibot2_msgs/msg/task.hpp"
 #include "multibot2_msgs/msg/neighbors.hpp"
+#include "multibot2_msgs/msg/robot_with_trajectory.hpp"
+#include "multibot2_msgs/msg/robot_with_trajectory_array.hpp"
 #include "multibot2_msgs/srv/queue_rivision.hpp"
 
 using namespace multibot2_util;
@@ -36,6 +38,8 @@ namespace multibot2_server
         typedef multibot2_msgs::msg::Task Task;
         typedef multibot2_msgs::msg::Neighbor Neighbor;
         typedef multibot2_msgs::msg::Neighbors Neighbors;
+        typedef multibot2_msgs::msg::RobotWithTrajectory RobotWithTrajectory;
+        typedef multibot2_msgs::msg::RobotWithTrajectoryArray RobotWithTrajectoryArray;
         typedef multibot2_msgs::srv::QueueRivision QueueRivision;
 
         Robot robot_;
@@ -44,6 +48,8 @@ namespace multibot2_server
 
         rclcpp::Time last_update_time_;
         rclcpp::Time prior_update_time_;
+
+        RobotWithTrajectory local_trajectory_;
 
         rclcpp::Subscription<State>::SharedPtr state_sub_;
         rclcpp_lifecycle::LifecyclePublisher<geometry_msgs::msg::Twist>::SharedPtr cmd_vel_pub_;
@@ -55,6 +61,8 @@ namespace multibot2_server
         rclcpp_lifecycle::LifecyclePublisher<Neighbors>::SharedPtr neighbors_pub_;
         rclcpp::Client<PanelUtil::ModeSelection>::SharedPtr modeFromServer_;
         rclcpp::Service<PanelUtil::ModeSelection>::SharedPtr modeFromRobot_;
+        rclcpp::Subscription<RobotWithTrajectory>::SharedPtr local_trajectory_sub_;
+        rclcpp_lifecycle::LifecyclePublisher<RobotWithTrajectoryArray>::SharedPtr dynamic_obstacles_pub_;
         rclcpp::Service<QueueRivision>::SharedPtr queue_revision_;
     }; // struct Robot_ROS
 
@@ -98,6 +106,8 @@ namespace multibot2_server
 
         const Robot_ROS &getRobot(const std::string _robotName) const;
 
+        const std::string &getMode() const { return mode_; }
+
         void setGoal(const std::string _robotName, const geometry_msgs::msg::Pose2D _goal);
 
         void setMode(const std::string _robotName, const PanelUtil::Mode _mode);
@@ -107,6 +117,8 @@ namespace multibot2_server
         void setReplanTime(const std::string _robotName, const std::chrono::system_clock::time_point _replan_time) { robots_[_robotName].robot_.replan_time() = _replan_time; }
 
         void setSubgoal(const std::string _robotName, const Pose &_subgoal) { robots_[_robotName].robot_.subgoal() = _subgoal; }
+
+        void setHigherNeighbors(const std::string _robotName, const std::set<std::string> _higher_neighbors) { robots_[_robotName].robot_.higher_neighbors() = _higher_neighbors; }
 
         void request_modeChange(const std::string _robotName, const PanelUtil::Mode _mode);
 
@@ -127,6 +139,8 @@ namespace multibot2_server
         void convert_map_to_polygons();
 
         void robotState_callback(const Robot_ROS::State::SharedPtr _state_msg);
+
+        void local_trajectory_callback(const Robot_ROS::RobotWithTrajectory::SharedPtr _trajectory_msg);
 
         void update()
         {
@@ -154,8 +168,12 @@ namespace multibot2_server
         costmap_converter::PolygonContainerConstPtr static_obstacles_;
 
         std::shared_ptr<nav2_navfn_planner::NavfnPlanner> navfn_global_planner_;
+
         double communication_range_{4.0};
+        double lookahead_dist_{5.0};
         double subgoal_generator_duration_{0.05};
+
+        std::string mode_{"V-PIBT"};
 
     }; // class Instance_Manager
 } // namespace multibot2_server

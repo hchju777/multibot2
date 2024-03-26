@@ -42,10 +42,14 @@ namespace multibot2_server
     void Instance_Manager::init_parameters()
     {
         nh_->declare_parameter("server.communication_range", communication_range_);
+        nh_->declare_parameter("server.lookahead_dist", lookahead_dist_);
         nh_->declare_parameter("server.subgoal_generator.duration", subgoal_generator_duration_);
+        nh_->declare_parameter("server.mode", mode_);
 
         nh_->get_parameter_or("server.communication_range", communication_range_, communication_range_);
+        nh_->get_parameter_or("server.lookahead_dist", lookahead_dist_, lookahead_dist_);
         nh_->get_parameter_or("server.subgoal_generator.duration", subgoal_generator_duration_, subgoal_generator_duration_);
+        nh_->get_parameter_or("server.mode", mode_, mode_);
 
         global_costmap_ros_->configure();
     }
@@ -153,6 +157,12 @@ namespace multibot2_server
             robot_ros.neighbors_pub_ = nh_->create_publisher<Robot_ROS::Neighbors>(
                 "/" + robotName + "/neighbors", qos);
             robot_ros.neighbors_pub_->on_activate();
+            robot_ros.local_trajectory_sub_ = nh_->create_subscription<Robot_ROS::RobotWithTrajectory>(
+                "/" + robotName + "/local_trajectory", rclcpp::QoS(rclcpp::KeepLast(100)),
+                std::bind(&Instance_Manager::local_trajectory_callback, this, std::placeholders::_1));
+            robot_ros.dynamic_obstacles_pub_ = nh_->create_publisher<Robot_ROS::RobotWithTrajectoryArray>(
+                "/" + robotName + "/dynamic_obstacles", rclcpp::QoS(rclcpp::KeepLast(100)));
+            robot_ros.dynamic_obstacles_pub_->on_activate();
             robot_ros.queue_revision_ = nh_->create_service<Robot_ROS::QueueRivision>(
                 "/" + robotName + "/queue_revision",
                 std::bind(&Instance_Manager::queue_revision, this, std::placeholders::_1, std::placeholders::_2));
@@ -402,6 +412,13 @@ namespace multibot2_server
         robot_ros.robot_.arrived() = _state_msg->arrived;
     }
 
+    void Instance_Manager::local_trajectory_callback(const Robot_ROS::RobotWithTrajectory::SharedPtr _trajectory_msg)
+    {
+        auto &robot_ros = robots_[_trajectory_msg->name];
+
+        robot_ros.local_trajectory_ = *_trajectory_msg;
+    }
+
     void Instance_Manager::update_goals()
     {
         for (auto &robotPair : robots_)
@@ -453,15 +470,20 @@ namespace multibot2_server
         if (robots_.size() < 2)
             return;
 
-        for (auto self_it = robots_.begin(); self_it != std::prev(robots_.end()); ++self_it)
+        // for (auto self_it = robots_.begin(); self_it != std::prev(robots_.end()); ++self_it)
+        for (auto self_it = robots_.begin(); self_it != robots_.end(); ++self_it)
         {
             Robot &self = self_it->second.robot_;
             geometry_msgs::msg::PoseStamped self_pose;
             self.pose().toPoseMsg(self_pose.pose);
 
             Robot_ROS::Neighbors neighbors_msg;
-            for (auto neighbor_it = std::next(self_it); neighbor_it != robots_.end(); ++neighbor_it)
+            Robot_ROS::RobotWithTrajectoryArray dynamic_obstacles_msg;
+            for (auto neighbor_it = robots_.begin(); neighbor_it != robots_.end(); ++neighbor_it)
             {
+                if (neighbor_it == self_it)
+                    continue;
+
                 Robot &neighbor = neighbor_it->second.robot_;
 
                 const Pose relative_pose = neighbor.pose() - self.pose();
@@ -494,7 +516,7 @@ namespace multibot2_server
                 self.neighbors().emplace(path_length, neighbor);
                 neighbor.neighbors().emplace(path_length, self);
 
-                if (path_length < 3.0)
+                if (path_length < lookahead_dist_)
                 {
                     Robot_ROS::Neighbor neighbor_msg;
                     {
@@ -504,10 +526,28 @@ namespace multibot2_server
                         neighbor_msg.velocity.angular.z = neighbor.cur_vel_theta();
                     }
                     neighbors_msg.neighbors.push_back(neighbor_msg);
+
+                    if (mode_ == "V-PIBT")
+                    {
+                        if (self.higher_neighbors().contains(neighbor.name()))
+                        {
+                            Robot_ROS &neighbor_ros = neighbor_it->second;
+                            dynamic_obstacles_msg.robots.push_back(neighbor_ros.local_trajectory_);
+                        }
+                    }
+                    else if (mode_ == "DTEB")
+                    {
+                        if (self.name().compare(neighbor.name()) > 0)
+                        {
+                            Robot_ROS &neighbor_ros = neighbor_it->second;
+                            dynamic_obstacles_msg.robots.push_back(neighbor_ros.local_trajectory_);
+                        }
+                    }
                 }
             }
             Robot_ROS &self_ros = self_it->second;
             self_ros.neighbors_pub_->publish(neighbors_msg);
+            self_ros.dynamic_obstacles_pub_->publish(dynamic_obstacles_msg);
         }
     }
 } // namespace multibot2_server

@@ -111,7 +111,10 @@ namespace multibot2_robot::teb_local_planner
       visualization_->publishRobotFootprintModel(teb_.Pose(0), *robot_model_);
 
     if (cfg_->trajectory.publish_feedback)
+    {
       visualization_->publishFeedbackMessage(*this, *obstacles_);
+    }
+    visualization_->publishTrajectory(*this, robot_model_);
   }
 
   /*
@@ -1173,6 +1176,58 @@ namespace multibot2_robot::teb_local_planner
 
     // goal
     multibot2_msgs::msg::TrajectoryPointMsg &goal = trajectory.back();
+    teb_.BackPose().toPoseMsg(goal.pose);
+    goal.velocity.linear.z = 0;
+    goal.velocity.angular.x = goal.velocity.angular.y = 0;
+    goal.velocity.linear.x = vel_goal_.second.linear.x;
+    goal.velocity.linear.y = vel_goal_.second.linear.y;
+    goal.velocity.angular.z = vel_goal_.second.angular.z;
+    goal.time_from_start = durationFromSec(curr_time);
+  }
+
+  void TebOptimalPlanner::getFullTrajectorySE2(std::vector<multibot2_msgs::msg::TrajectoryPointSE2> &trajectory) const
+  {
+    int n = teb_.sizePoses();
+
+    trajectory.resize(n);
+
+    if (n == 0)
+      return;
+
+    double curr_time = 0;
+
+    // start
+    multibot2_msgs::msg::TrajectoryPointSE2 &start = trajectory.front();
+    teb_.Pose(0).toPoseMsg(start.pose);
+    start.velocity.linear.z = 0;
+    start.velocity.angular.x = start.velocity.angular.y = 0;
+    start.velocity.linear.x = vel_start_.second.linear.x;
+    start.velocity.linear.y = vel_start_.second.linear.y;
+    start.velocity.angular.z = vel_start_.second.angular.z;
+    start.time_from_start = durationFromSec(curr_time);
+
+    curr_time += teb_.TimeDiff(0);
+
+    // intermediate points
+    for (int i = 1; i < n - 1; ++i)
+    {
+      multibot2_msgs::msg::TrajectoryPointSE2 &point = trajectory[i];
+      teb_.Pose(i).toPoseMsg(point.pose);
+      point.velocity.linear.z = 0;
+      point.velocity.angular.x = point.velocity.angular.y = 0;
+      double vel1_x, vel1_y, vel2_x, vel2_y, omega1, omega2;
+      extractVelocity(teb_.Pose(i - 1), teb_.Pose(i), teb_.TimeDiff(i - 1), vel1_x, vel1_y, omega1);
+      extractVelocity(teb_.Pose(i), teb_.Pose(i + 1), teb_.TimeDiff(i), vel2_x, vel2_y, omega2);
+      point.velocity.linear.x = 0.5 * (vel1_x + vel2_x);
+      point.velocity.linear.y = 0.5 * (vel1_y + vel2_y);
+      point.velocity.angular.z = 0.5 * (omega1 + omega2);
+      point.time_from_start = durationFromSec(curr_time);
+
+      curr_time += teb_.TimeDiff(i);
+    }
+
+    // goal
+    multibot2_msgs::msg::TrajectoryPointSE2 &goal = trajectory.back();
     teb_.BackPose().toPoseMsg(goal.pose);
     goal.velocity.linear.z = 0;
     goal.velocity.angular.x = goal.velocity.angular.y = 0;
