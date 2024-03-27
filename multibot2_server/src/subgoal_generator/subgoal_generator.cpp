@@ -191,8 +191,7 @@ namespace multibot2_server::SubgoalGenerator
 
             std::chrono::duration<double> duration_sec = std::chrono::system_clock::now() - robot.replan_time();
 
-            // Todo: Parameterize
-            if (duration_sec.count() > 1.0)
+            if (duration_sec.count() > cfg_->timeout_)
                 return true;
         }
 
@@ -213,13 +212,32 @@ namespace multibot2_server::SubgoalGenerator
 
         for (auto &singleThread : multiThread)
         {
-            for (const auto &robotPair : singleThread.get())
+            const multibot2_server::Robots &robots = singleThread.get();
+
+            bool recovery = true;
+            for (const auto &robotPair : robots)
+            {
+                const multibot2_server::Robot &robot = robotPair.second;
+                
+                double dist = (robot.subgoal().position() - robot.pose().position()).norm();
+                if (dist > 1e-8)
+                {
+                    recovery = false;
+                    break;
+                }
+            }
+
+            for (const auto &robotPair : robots)
             {
                 std::string robotName = robotPair.first;
                 Robot robot = robotPair.second;
 
-                robots_[robotName].subgoal() = robot.subgoal();
                 robots_[robotName].higher_neighbors() = robot.higher_neighbors();
+
+                if (not(recovery))
+                    robots_[robotName].subgoal() = robot.subgoal();
+                else
+                    robots_[robotName].subgoal() = robot.goal();
             }
         }
     }

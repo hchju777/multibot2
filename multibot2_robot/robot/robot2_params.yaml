@@ -45,7 +45,8 @@
 
       laser:
         type: "sick_tim" # sick_tim or hokuyo
-        hostname: "192.168.1.204"
+        hostname: '192.168.1.13' # hokuyo
+        # hostname: '192.168.1.204' # sick_tim
         frame_id: "laser"
         scan_topic: "scan"
         offset_x: 0.0

@@ -51,7 +51,7 @@ find_package(sensor_msgs REQUIRED)
 find_package(visualization_msgs REQUIRED)
 
 find_package(ompl REQUIRED)
-find_package(Ceres REQUIRED COMPONENTS SuiteSparse)
+# find_package(Ceres REQUIRED COMPONENTS SuiteSparse)
 
 find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets)
 
