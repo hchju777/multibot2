@@ -13,6 +13,8 @@ namespace multibot2_server::SubgoalGenerator
         typedef std::shared_ptr<Config> SharedPtr;
 
     public:
+        double timeout_{1.0};
+
         struct BufferedVoronoiDiagram
         {
             double min_offset_{2.7};

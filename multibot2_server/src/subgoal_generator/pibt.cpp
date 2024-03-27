@@ -73,8 +73,7 @@ namespace multibot2_server::SubgoalGenerator::PIBT
         {
             Robot robot = robots_[priority_list_.front()];
 
-            if (not(priorityInheritance(robot.name(), close, open)))
-                std::cout << "PIBT Failed" << std::endl;
+            priorityInheritance(robot.name(), close, open);
 
             priority_list_.remove_if([&open](std::string _robotName)
                                      { return not(open.contains(_robotName)); });

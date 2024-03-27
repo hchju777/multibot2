@@ -8,6 +8,7 @@
       
       subgoal_generator:
         duration: 0.05
+        timeout: 1.0
 
         buffered_voronoi_diagram:
           min_offset: 3.0
