@@ -31,7 +31,7 @@
   <depend>nav2_costmap_2d</depend>
   <depend>nav2_msgs</depend>
   <depend>nav2_util</depend>
-  <depend>libceres-dev</depend>
+  <!-- <depend>libceres-dev</depend> -->
   <depend>ompl</depend>
   <exec_depend>nav2_bringup</exec_depend>
 
