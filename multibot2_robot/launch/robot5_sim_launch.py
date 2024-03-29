@@ -26,6 +26,8 @@ def generate_launch_description():
         robot_params = robot_params['/**']['ros__parameters']['robot']
     
     # Fake Node
+    xacro = os.path.join(get_package_share_directory("multibot2_driver"), 'models', robot_params['model'], 'model.xacro')
+    
     fake_driver_cmd = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(os.path.join(get_package_share_directory('multibot2_driver'), 'launch',
                                                    'fake_driver_launch.py')),
@@ -33,6 +35,7 @@ def generate_launch_description():
             'robot_name': robot_params['name'],
             'robot_type': robot_params['type'],
             'robot_config': robotConfig,
+            'robot_model': xacro,
             'frame_prefix': robot_params['name'] + '/',
             'odom_frame': robot_params['name'] + '/' + robot_params['odometry']['frame_id'],
             'base_frame': robot_params['name'] + '/' + robot_params['odometry']['child_frame_id'],
