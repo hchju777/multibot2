@@ -1,0 +1,54 @@
+/**:
+  ros__parameters:
+    robot:
+      name: "Robot6"
+
+      goal:
+        x: 6.8
+        y: 1.3
+        theta: 3.14
+
+      spawn: # Optional: Gazebo Initial Spwan Pose
+        x: 13.4
+        y: 1.3
+        theta: 3.14
+
+      type: "DiffDrive" # types: "DiffDrive" or "CarLike"
+
+      radius: 0.7
+
+      footprint_model:
+        type: "two_circles"
+        front_offset: 0.0 # for type "two_circles"
+        front_radius: 0.65 # for type "two_circles"
+        rear_offset: 0.4 # for type "two_circles"
+        rear_radius: 0.55 # for type "two_circles"
+
+      goal_tolerance: 0.25
+
+      avoidance_dist: 5.0
+      
+      velocity_profile:
+        max_vel_x: 0.3
+        max_vel_theta: 0.4
+        acc_lim_x: 1.0
+        acc_lim_theta: 0.8
+
+      wheels:
+        seperation: 0.5
+        radius: 0.32
+
+      odometry:
+        topic: "odom"
+        frame_id: "odom"
+        child_frame_id: "base_link"
+
+      laser:
+        type: "sick_tim" # sick_tim or hokuyo
+        hostname: '192.168.1.13' # hokuyo
+        # hostname: '192.168.1.204' # sick_tim
+        frame_id: "laser"
+        scan_topic: "scan"
+        offset_x: 0.0
+        offset_y: 0.0
+        offset_z: 0.28
