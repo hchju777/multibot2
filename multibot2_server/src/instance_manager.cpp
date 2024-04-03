@@ -166,6 +166,9 @@ namespace multibot2_server
             robot_ros.queue_revision_ = nh_->create_service<Robot_ROS::QueueRivision>(
                 "/" + robotName + "/queue_revision",
                 std::bind(&Instance_Manager::queue_revision, this, std::placeholders::_1, std::placeholders::_2));
+            robot_ros.local_obstacles_sub_ = nh_->create_subscription<Robot_ROS::ObstacleArrayMsg>(
+                "/" + robotName + "/local_obstacles", rclcpp::QoS(rclcpp::KeepLast(100)),
+                std::bind(&Instance_Manager::local_obstacles_callback, this, std::placeholders::_1));
         }
 
         if (tasks_.contains(robotName))
@@ -410,6 +413,13 @@ namespace multibot2_server
         robot_ros.robot_.cur_vel_theta() = _state_msg->ang_vel;
 
         robot_ros.robot_.arrived() = _state_msg->arrived;
+    }
+
+    void Instance_Manager::local_obstacles_callback(const Robot_ROS::ObstacleArrayMsg::SharedPtr _obstacle_array_msg)
+    {
+        auto &robot = robots_[_obstacle_array_msg->name].robot_;
+
+        robot.set_local_obstacles(_obstacle_array_msg->obstacles);
     }
 
     void Instance_Manager::local_trajectory_callback(const Robot_ROS::RobotWithTrajectory::SharedPtr _trajectory_msg)

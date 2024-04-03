@@ -67,8 +67,6 @@ namespace multibot2_server
         subgoalgen_config_->loadRosParamFromNodeHandle(nh_);
 
         subgoal_generator_ = std::make_unique<SubgoalGenerator::Generator>(subgoalgen_config_);
-        subgoal_generator_->update_map_polygon(instance_manager_->global_costmap_ros()->getCostmap(),
-                                               instance_manager_->static_obstacles());
 
         panel_is_running_ = false;
     }

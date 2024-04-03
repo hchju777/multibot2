@@ -16,6 +16,8 @@ namespace multibot2_server
 
         task_queue_ = _robot.task_queue_;
         goal_queue_ = _robot.goal_queue_;
+
+        local_obstacles_ = _robot.local_obstacles_;
     }
 
     Robot &Robot::operator=(const Robot &_rhs)
@@ -35,6 +37,8 @@ namespace multibot2_server
 
             task_queue_ = _rhs.task_queue_;
             goal_queue_ = _rhs.goal_queue_;
+
+            local_obstacles_ = _rhs.local_obstacles_;
         }
 
         return *this;
@@ -59,5 +63,23 @@ namespace multibot2_server
 
         task_queue_ = std::queue<Task>();
         goal_queue_ = std::queue<Task>();
+
+        std::vector<CGAL::Polygon_2<Kernel>> empty_obstacles;
+        local_obstacles_.swap(empty_obstacles);
     }
+
+    void Robot::set_local_obstacles(const std::vector<geometry_msgs::msg::Polygon> &_local_obstacles)
+    {
+        this->local_obstacles_.clear();
+
+        for (const auto &obst : _local_obstacles)
+        {
+            CGAL::Polygon_2<Kernel> poly;
+            for (const auto &p : obst.points)
+                poly.push_back(Kernel::Point_2(p.x, p.y));
+
+            this->local_obstacles_.push_back(poly);
+        }
+    }
+
 } // namespace multibot2_server

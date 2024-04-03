@@ -11,8 +11,6 @@ namespace multibot2_server::SubgoalGenerator
         dynamic_graph_ = _generator.dynamic_graph_;
 
         solvers_ = _generator.solvers_;
-
-        map_poly_ = _generator.map_poly_;
     }
 
     Generator &Generator::operator=(const Generator &_rhs)
@@ -26,8 +24,6 @@ namespace multibot2_server::SubgoalGenerator
             dynamic_graph_ = _rhs.dynamic_graph_;
 
             solvers_ = _rhs.solvers_;
-
-            map_poly_ = _rhs.map_poly_;
         }
 
         return *this;
@@ -42,58 +38,6 @@ namespace multibot2_server::SubgoalGenerator
         find_subgoals();
 
         _robots = robots_;
-    }
-
-    void Generator::update_map_polygon(nav2_costmap_2d::Costmap2D *_global_costmap,
-                                       const costmap_converter::PolygonContainerConstPtr &_static_obstacles)
-    {
-        nav2_costmap_2d::Costmap2D *global_costmap = _global_costmap;
-
-        double width = global_costmap->getSizeInMetersX();
-        double height = global_costmap->getSizeInMetersY();
-
-        std::vector<Point_2> box_map_vertices = {
-            Point_2(global_costmap->getOriginX(), global_costmap->getOriginY()),
-            Point_2(global_costmap->getOriginX() + width, global_costmap->getOriginY()),
-            Point_2(global_costmap->getOriginX() + width, global_costmap->getOriginY() + height),
-            Point_2(global_costmap->getOriginX(), global_costmap->getOriginY() + height)};
-
-        map_poly_.outer_boundary() = CGAL::Polygon_2<Kernel>(box_map_vertices.begin(), box_map_vertices.end());
-
-        auto static_obstacles = _static_obstacles;
-        for (auto obst_iter = static_obstacles->begin(); obst_iter != static_obstacles->end(); ++obst_iter)
-        {
-            if (obst_iter->points.size() < 3)
-                continue;
-
-            std::vector<Eigen::Vector2d> vertices;
-            for (const auto &vertex : obst_iter->points)
-                vertices.push_back(Eigen::Vector2d(vertex.x, vertex.y));
-
-            if (vertices.front().isApprox(vertices.back()))
-                vertices.pop_back();
-
-            CGAL::Polygon_2<Kernel> obst_poly;
-            for (const auto &vertex : vertices)
-                obst_poly.push_back(Point_2(vertex.x(), vertex.y()));
-
-            std::list<CGAL::Polygon_with_holes_2<Kernel>> cropped_map_poly;
-            CGAL::difference(map_poly_, obst_poly, std::back_inserter(cropped_map_poly));
-
-            double max_area = 0.0;
-            for (const auto &poly_w_holes : cropped_map_poly)
-            {
-                double area = CGAL::to_double(poly_w_holes.outer_boundary().area());
-                for (const auto &hole : poly_w_holes.holes())
-                    area -= CGAL::to_double(hole.area());
-
-                if (area > max_area)
-                {
-                    max_area = area;
-                    map_poly_ = poly_w_holes;
-                }
-            }
-        }
     }
 
     void Generator::generate_solvers()
@@ -119,12 +63,6 @@ namespace multibot2_server::SubgoalGenerator
 
             if (not(check_if_need_to_replan(group)))
                 continue;
-
-            // for (const auto &vertexPair : group)
-            // {
-            //     std::cout << "\t" << vertexPair.first;
-            // }
-            // std::cout << std::endl;
 
             for (auto iter = group.begin(); iter != group.end(); ++iter)
             {
@@ -160,7 +98,7 @@ namespace multibot2_server::SubgoalGenerator
                 robots_[robotName].VOCones() = vo_generator->robots()[robotName].VOCones();
             }
 
-            PIBT::Solver::SharedPtr solver = std::make_shared<PIBT::Solver>(cfg_, robotGroup, priority_graph, map_poly_);
+            PIBT::Solver::SharedPtr solver = std::make_shared<PIBT::Solver>(cfg_, robotGroup, priority_graph);
 
             solvers_.push_back(solver);
         }
@@ -260,8 +198,6 @@ namespace multibot2_server::SubgoalGenerator
         reset();
 
         robots_ = _robots;
-        // for (auto &robot : robots_)
-        //     robot.second.subgoal() = robot.second.pose();
 
         dynamic_graph_->addVertices(_robots);
     }

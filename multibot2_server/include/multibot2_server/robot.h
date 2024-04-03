@@ -4,7 +4,13 @@
 #include <map>
 #include <queue>
 
+#include <CGAL/Exact_predicates_exact_constructions_kernel.h>
+#include <CGAL/Polygon_2.h>
+#include <CGAL/create_offset_polygons_2.h>
+
 #include "multibot2_util/base_robot_info.h"
+
+typedef CGAL::Exact_predicates_exact_constructions_kernel Kernel;
 
 namespace multibot2_server
 {
@@ -118,11 +124,16 @@ namespace multibot2_server
         inline std::queue<Task> &goal_queue() { return goal_queue_; }
         inline const std::queue<Task> &goal_queue() const { return goal_queue_; }
 
+        inline std::vector<CGAL::Polygon_2<Kernel>> local_obstacles() {return local_obstacles_;}
+        inline const std::vector<CGAL::Polygon_2<Kernel>> local_obstacles() const {return local_obstacles_;}
+
     public:
         Robot &operator=(const Robot &_rhs);
 
     public:
         void init();
+
+        void set_local_obstacles(const std::vector<geometry_msgs::msg::Polygon> &_local_obstacles);
 
     public:
         friend std::ostream &operator<<(std::ostream &_os, const Robot &_robot)
@@ -145,6 +156,8 @@ namespace multibot2_server
 
         std::queue<Task> task_queue_;
         std::queue<Task> goal_queue_;
+
+        std::vector<CGAL::Polygon_2<Kernel>> local_obstacles_;
 
     }; // class Robot
 

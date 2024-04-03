@@ -109,8 +109,15 @@ namespace multibot2_robot
             std::string{nh_->get_namespace()} + "/rviz_traj", qos);
         robot_ros_.rviz_path_pub()->on_activate();
 
+        robot_ros_.local_obstacles_pub() = nh_->create_publisher<Robot_ROS::ObstacleArrayMsg>(
+            std::string{nh_->get_namespace()} + "/local_obstacles", rclcpp::QoS(rclcpp::KeepLast(100)));
+        robot_ros_.local_obstacles_pub()->on_activate();
+
         update_timer_ = nh_->create_wall_timer(
             10ms, std::bind(&Instance_Manager::update_state, this));
+
+        local_obstacles_update_timer_ = nh_->create_wall_timer(
+            50ms, std::bind(&Instance_Manager::report_local_obstacles, this));
 
         RCLCPP_INFO(nh_->get_logger(), "Instance Manager has been initialized");
     }
@@ -229,6 +236,72 @@ namespace multibot2_robot
         robot_ros_.state_pub()->publish(state);
     }
 
+    void Instance_Manager::report_local_obstacles()
+    {
+        Robot_ROS::ObstacleArrayMsg obstacleArray;
+        obstacleArray.header.stamp = nh_->now();
+        obstacleArray.name = robot().name();
+
+        Eigen::Affine3d obstacle_to_map_eig;
+        try
+        {
+            geometry_msgs::msg::TransformStamped obstacle_to_map = tf_buffer_->lookupTransform(
+                global_costmap_ros_->getGlobalFrameID(), tf2::timeFromSec(0),
+                local_costmap_ros_->getGlobalFrameID(), tf2::timeFromSec(0),
+                local_costmap_ros_->getGlobalFrameID(), tf2::durationFromSec(0.5));
+            obstacle_to_map_eig = tf2::transformToEigen(obstacle_to_map);
+        }
+        catch (const std::exception &ex)
+        {
+            RCLCPP_ERROR(nh_->get_logger(), "%s", ex.what());
+            obstacle_to_map_eig.setIdentity();
+        }
+
+        nav2_costmap_2d::Costmap2D fake_local_costmap = get_fake_local_costmap();
+        std::shared_ptr<costmap_converter::CostmapToPolygonsDBSMCCH> costmap_converter = std::make_shared<costmap_converter::CostmapToPolygonsDBSMCCH>();
+
+        costmap_converter->setCostmap2D(&fake_local_costmap);
+        costmap_converter->compute();
+
+        costmap_converter::PolygonContainerConstPtr obstacles = costmap_converter->getPolygons();
+
+        for (auto obst_iter = obstacles->begin(); obst_iter != obstacles->end(); ++obst_iter)
+        {
+            if (obst_iter->points.size() < 3)
+                continue;
+
+            std::vector<Eigen::Vector2d> vertices;
+            for (const auto &vertex : obst_iter->points)
+                vertices.push_back(Eigen::Vector2d(vertex.x, vertex.y));
+
+            if (vertices.front().isApprox(vertices.back()))
+                vertices.pop_back();
+
+            if (vertices.size() < 3)
+                continue;
+
+            geometry_msgs::msg::Polygon poly;
+            {
+                for (const auto &vertex : vertices)
+                {
+                    Eigen::Vector3d obstacle_to_map_pos(vertex.x(), vertex.y(), 0.0);
+                    obstacle_to_map_pos = obstacle_to_map_eig * obstacle_to_map_pos;
+
+                    geometry_msgs::msg::Point32 point;
+                    {
+                        point.x = obstacle_to_map_pos.x();
+                        point.y = obstacle_to_map_pos.y();
+                    }
+                    poly.points.push_back(point);
+                }
+            }
+
+            obstacleArray.obstacles.push_back(poly);
+        }
+
+        robot_ros_.local_obstacles_pub()->publish(obstacleArray);
+    }
+
     void Instance_Manager::odom_callback(const nav_msgs::msg::Odometry::SharedPtr _odom_msg)
     {
         if (robot_ros_.mode() == Robot_ROS::Mode::MANUAL)
@@ -314,5 +387,24 @@ namespace multibot2_robot
         m.getRPY(roll, pitch, yaw);
 
         robot_ros_.subgoal() = multibot2_util::Pose(_subgoal_msg->pose);
+    }
+
+    const nav2_costmap_2d::Costmap2D Instance_Manager::get_fake_costmap(const nav2_costmap_2d::Costmap2D _original_costmap) const
+    {
+        nav2_costmap_2d::Costmap2D fake_costmap = _original_costmap;
+
+        for (unsigned int i = 0; i < fake_costmap.getSizeInCellsX() - 1; ++i)
+        {
+            for (unsigned int j = 0; j < fake_costmap.getSizeInCellsY() - 1; ++j)
+            {
+                if (fake_costmap.getCost(i, j) == nav2_costmap_2d::INSCRIBED_INFLATED_OBSTACLE or
+                    fake_costmap.getCost(i, j) == nav2_costmap_2d::NO_INFORMATION)
+                {
+                    fake_costmap.setCost(i, j, nav2_costmap_2d::LETHAL_OBSTACLE);
+                }
+            }
+        }
+
+        return fake_costmap;
     }
 } // namespace multibot2_robot

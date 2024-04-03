@@ -36,9 +36,6 @@ namespace multibot2_server::SubgoalGenerator
     public:
         void update_subgoals(Robots &_robots);
 
-        void update_map_polygon(nav2_costmap_2d::Costmap2D *_global_costmap,
-                                const costmap_converter::PolygonContainerConstPtr &_static_obstacles);
-
     protected:
         void generate_solvers();
 
@@ -59,8 +56,6 @@ namespace multibot2_server::SubgoalGenerator
         DynamicGraph::SharedPtr dynamic_graph_{std::make_shared<DynamicGraph>()};
 
         std::vector<PIBT::Solver::SharedPtr> solvers_;
-
-        CGAL::Polygon_with_holes_2<Kernel> map_poly_;
 
     }; // class Generator
 } // namespace multibot2_server::SubgoalGenerator

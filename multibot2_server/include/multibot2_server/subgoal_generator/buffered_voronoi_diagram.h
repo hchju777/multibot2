@@ -71,14 +71,13 @@ namespace multibot2_server::SubgoalGenerator
     public:
         BufferedVoronoiDiagram() {}
 
-        BufferedVoronoiDiagram(const Config::SharedPtr &_cfg, const std::vector<Site_2> &_points, const CGAL::Polygon_with_holes_2<Kernel> &_map_poly);
+        BufferedVoronoiDiagram(const Config::SharedPtr &_cfg, const std::vector<Site_2> &_points);
 
         BufferedVoronoiDiagram(const BufferedVoronoiDiagram &_buffered_voronoi_diagram)
         {
             cfg_ = _buffered_voronoi_diagram.cfg_;
             vd_ = _buffered_voronoi_diagram.vd_;
             box_poly_ = _buffered_voronoi_diagram.box_poly_;
-            map_poly_ = _buffered_voronoi_diagram.map_poly_;
         }
 
         ~BufferedVoronoiDiagram() { vd_.clear(); }
@@ -86,12 +85,11 @@ namespace multibot2_server::SubgoalGenerator
     public:
         bool get_polygon(const Point_2 &_point, CGAL::Polygon_2<Kernel> &_poly);
 
-        bool get_polygon(const Point_2 &_point, CGAL::Polygon_with_holes_2<Kernel> &_poly);
+        bool get_polygon(
+            const Point_2 &_point, CGAL::Polygon_with_holes_2<Kernel> &_poly,
+            const std::vector<CGAL::Polygon_2<Kernel>> &_obstacles, double _offset);
 
         bool get_raw_voronoi_polygon(const Point_2 &_point, CGAL::Polygon_2<Kernel> &_poly);
-
-    public:
-        bool convert_to_bvc(const Point_2 &_point, double _offset, CGAL::Polygon_with_holes_2<Kernel> &_poly_w_holes);
 
     public:
         BufferedVoronoiDiagram &operator=(const BufferedVoronoiDiagram &_rhs)
@@ -101,7 +99,6 @@ namespace multibot2_server::SubgoalGenerator
                 cfg_ = _rhs.cfg_;
                 vd_ = _rhs.vd_;
                 box_poly_ = _rhs.box_poly_;
-                map_poly_ = _rhs.map_poly_;
             }
 
             return *this;
@@ -132,8 +129,5 @@ namespace multibot2_server::SubgoalGenerator
         VD vd_;
 
         CGAL::Polygon_2<Kernel> box_poly_;
-
-        CGAL::Polygon_with_holes_2<Kernel> map_poly_;
-
     }; // class BufferedVoronoiDiagram
 } // namespace multibot2_server::SubgoalGenerator

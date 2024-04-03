@@ -38,6 +38,7 @@ set(msg_files
   "msg/FeedbackMsg.msg"
   "msg/Neighbor.msg"
   "msg/Neighbors.msg"
+  "msg/ObstacleArrayMsg.msg"
   "msg/RobotConfig.msg"
   "msg/RobotFootprint.msg"
   "msg/RobotWithTrajectory.msg"

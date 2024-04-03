@@ -27,7 +27,7 @@ namespace multibot2_server::SubgoalGenerator::PIBT
     public:
         Solver() {}
 
-        Solver(const Config::SharedPtr &_cfg, const Robots &_robots, std::stack<std::string> _priority_graph, const CGAL::Polygon_with_holes_2<Kernel> &_map_poly);
+        Solver(const Config::SharedPtr &_cfg, const Robots &_robots, std::stack<std::string> _priority_graph);
 
         Solver(const Solver &_solver);
 
@@ -63,7 +63,7 @@ namespace multibot2_server::SubgoalGenerator::PIBT
             std::string _parent = std::string());
 
     protected:
-        bool set_bvc_generator(const CGAL::Polygon_with_holes_2<Kernel> &_map_poly);
+        bool set_bvc_generator();
 
         bool generate_diagrams();
 
