@@ -139,12 +139,15 @@ namespace multibot2_server::SubgoalGenerator::PIBT
             std::string candidateName = candidate.first;
             _close.emplace(candidateName);
 
-            if (_robotName != candidateName and not(priorityInheritance(candidateName, _robotName, _close, _open)))
+            if (_robotName != candidateName)
             {
-                _candidates.remove_if([&_close](Candidate _candidate)
-                                      { return _close.contains(_candidate.first); });
+                if (not(priorityInheritance(candidateName, _robotName, _close, _open)))
+                {
+                    _candidates.remove_if([&_close](Candidate _candidate)
+                                          { return _close.contains(_candidate.first); });
 
-                continue;
+                    continue;
+                }
             }
 
             Point_2 goal(robot.goal().x(), robot.goal().y());
