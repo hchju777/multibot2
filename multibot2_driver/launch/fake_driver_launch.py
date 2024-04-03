@@ -12,10 +12,11 @@ from launch_ros.actions import Node
 def generate_launch_description():
     multibot2_driver_dir = get_package_share_directory("multibot2_driver")
 
-    xacro = os.path.join(multibot2_driver_dir, 'models', 'DiffDrive', 'model.xacro')
+    # xacro = os.path.join(multibot2_driver_dir, 'models', 'DiffDrive', 'model.xacro')
 
     robot_name = LaunchConfiguration("robot_name")
     robot_type = LaunchConfiguration("robot_type")
+    xacro = LaunchConfiguration("robot_model")
     robot_config = LaunchConfiguration("robot_config")
 
     frame_prefix = LaunchConfiguration("frame_prefix")

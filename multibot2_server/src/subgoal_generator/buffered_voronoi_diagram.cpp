@@ -2,8 +2,8 @@
 
 namespace multibot2_server::SubgoalGenerator
 {
-    BufferedVoronoiDiagram::BufferedVoronoiDiagram(const Config::SharedPtr &_cfg, const std::vector<Site_2> &_points, const CGAL::Polygon_with_holes_2<Kernel> &_map_poly)
-        : cfg_(_cfg), map_poly_(_map_poly)
+    BufferedVoronoiDiagram::BufferedVoronoiDiagram(const Config::SharedPtr &_cfg, const std::vector<Site_2> &_points)
+        : cfg_(_cfg)
     {
         Kernel::Iso_rectangle_2 bbox = CGAL::bounding_box(_points.begin(), _points.end());
 
@@ -40,35 +40,41 @@ namespace multibot2_server::SubgoalGenerator
         return true;
     }
 
-    bool BufferedVoronoiDiagram::get_polygon(const Point_2 &_point, CGAL::Polygon_with_holes_2<Kernel> &_poly)
+    bool BufferedVoronoiDiagram::get_polygon(
+        const Point_2 &_point, CGAL::Polygon_with_holes_2<Kernel> &_poly,
+        const std::vector<CGAL::Polygon_2<Kernel>> &_obstacles, double _offset)
     {
         CGAL::Polygon_2<Kernel> vn_poly;
-        if (not(get_raw_voronoi_polygon(_point, vn_poly)))
+        if (not(get_polygon(_point, vn_poly)))
             return false;
 
-        std::list<CGAL::Polygon_with_holes_2<Kernel>> cropped_local_boundary_poly;
-        CGAL::intersection(box_poly_, map_poly_, std::back_insert_iterator(cropped_local_boundary_poly));
+        CGAL::Lazy_exact_nt<boost::multiprecision::mpq_rational> offset(_offset);
+        auto inner_offset_polygons = CGAL::create_interior_skeleton_and_offset_polygons_2(offset, vn_poly);
 
-        CGAL::Polygon_with_holes_2<Kernel> local_boundary_w_holes;
-        if (not(check_point_in_poly_w_holes(_point, cropped_local_boundary_poly, local_boundary_w_holes)))
+        if (inner_offset_polygons.empty())
             return false;
 
-        std::list<CGAL::Polygon_with_holes_2<Kernel>> cropped_vn_poly;
-        CGAL::intersection(vn_poly, local_boundary_w_holes, std::back_insert_iterator(cropped_vn_poly));
+        std::list<CGAL::Polygon_with_holes_2<Kernel>> obstacles_union;
+        CGAL::join(_obstacles.begin(), _obstacles.end(), std::back_inserter(obstacles_union));
 
-        CGAL::Polygon_with_holes_2<Kernel> poly_w_holes;
-        if (not(check_point_in_poly_w_holes(_point, cropped_vn_poly, poly_w_holes)))
-            return false;
-
-        _poly = poly_w_holes;
-
-        if (_poly.outer_boundary().is_clockwise_oriented())
-            _poly.outer_boundary().reverse_orientation();
-
-        for (auto &hole : _poly.holes())
+        for (const auto &obst : obstacles_union)
         {
-            if (hole.is_counterclockwise_oriented())
-                hole.reverse_orientation();
+            std::list<CGAL::Polygon_with_holes_2<Kernel>> cropped_poly;
+            CGAL::difference(_poly, obst.outer_boundary(), std::back_inserter(cropped_poly));
+
+            double max_area = 0.0;
+            for (const auto &poly_w_holes : cropped_poly)
+            {
+                double area = CGAL::to_double(poly_w_holes.outer_boundary().area());
+                for (const auto &hole : poly_w_holes.holes())
+                    area -= CGAL::to_double(hole.area());
+
+                if (area > max_area)
+                {
+                    max_area = area;
+                    _poly = poly_w_holes;
+                }
+            }
         }
 
         return true;
@@ -125,41 +131,6 @@ namespace multibot2_server::SubgoalGenerator
         }
 
         return false;
-    }
-
-    bool BufferedVoronoiDiagram::convert_to_bvc(const Point_2 &_point, double _offset, CGAL::Polygon_with_holes_2<Kernel> &_poly_w_holes)
-    {
-        CGAL::Polygon_with_holes_2<Kernel> outer_poly(_poly_w_holes.outer_boundary());
-        CGAL::Lazy_exact_nt<boost::multiprecision::mpq_rational> offset(_offset);
-
-        CGAL::Polygon_with_holes_2<Kernel> offset_poly_w_holes;
-
-        auto offset_poly_with_holes_vec = CGAL::create_interior_skeleton_and_offset_polygons_with_holes_2(offset, outer_poly);
-        for (auto &offset_poly_with_holes_ptr : offset_poly_with_holes_vec)
-        {
-            std::vector<Point_2>::iterator ptr = CGAL::convex_hull_2(
-                offset_poly_with_holes_ptr->outer_boundary().begin(), offset_poly_with_holes_ptr->outer_boundary().end(), offset_poly_with_holes_ptr->outer_boundary().begin());
-
-            offset_poly_with_holes_ptr->outer_boundary().erase(ptr, offset_poly_with_holes_ptr->outer_boundary().end());
-        }
-
-        if (not(check_point_in_poly_w_holes(_point, offset_poly_with_holes_vec, offset_poly_w_holes)))
-            return false;
-
-        for (const auto &hole : _poly_w_holes.holes())
-        {
-            std::list<CGAL::Polygon_with_holes_2<Kernel>> truncated_poly_w_holes;
-            CGAL::difference(offset_poly_w_holes, hole, std::back_inserter(truncated_poly_w_holes));
-
-            if (truncated_poly_w_holes.empty())
-                return false;
-
-            offset_poly_w_holes = truncated_poly_w_holes.front();
-        }
-
-        _poly_w_holes = offset_poly_w_holes;
-
-        return true;
     }
 
     Kernel::Segment_2 BufferedVoronoiDiagram::convert_to_seg(const CGAL::Object _seg_obj, bool _outgoing, const Point_2 &_point)

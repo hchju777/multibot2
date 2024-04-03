@@ -13,7 +13,7 @@ from nav2_common.launch import RewrittenYaml
 import yaml
 
 def generate_launch_description():
-    target = 'robot1_params.yaml'
+    target = 'robot6_params.yaml'
 
     multibot2_robot_dir = get_package_share_directory("multibot2_robot")
 

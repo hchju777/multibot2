@@ -11,6 +11,7 @@ def generate_launch_description():
     
     multibot2_robot_dir = get_package_share_directory("multibot2_robot")
     
+    # robots = ["robot1", "robot2", "robot3", "robot4", "robot5", "robot6"]
     robots = ["robot1", "robot2", "robot3", "robot4"]
     
     multibot2_robot_cmds = []        

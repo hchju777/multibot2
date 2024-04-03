@@ -15,7 +15,20 @@
 
       type: "DiffDrive" # types: "DiffDrive" or "CarLike"
 
-      radius: 0.7
+      # model: "GoCart180" # model: "DiffDrive" or "GoCart180"
+
+      # radius: 0.95
+
+      # footprint_model:
+      #   type: "two_circles"
+      #   front_offset: 0.35 # for type "two_circles"
+      #   front_radius: 0.7 # for type "two_circles"
+      #   rear_offset: 0.35 # for type "two_circles"
+      #   rear_radius: 0.7 # for type "two_circles"
+
+      model: "DiffDrive" # model: "DiffDrive" or "GoCart180"
+
+      radius: 0.75
 
       footprint_model:
         type: "two_circles"

@@ -7,6 +7,8 @@
 #include <tf2_ros/buffer.h>
 #include <tf2_ros/transform_listener.h>
 
+#include <tf2_eigen/tf2_eigen.h>
+
 #include <tf2/LinearMath/Quaternion.h>
 #include <tf2/LinearMath/Matrix3x3.h>
 
@@ -20,9 +22,14 @@
 #include <nav_msgs/msg/odometry.hpp>
 #include <nav_msgs/msg/path.hpp>
 
+#include "costmap_converter/costmap_to_polygons.h"
+
+#include <Eigen/Geometry>
+
 #include "multibot2_msgs/msg/robot_state.hpp"
 #include "multibot2_msgs/msg/task.hpp"
 #include "multibot2_msgs/msg/neighbors.hpp"
+#include "multibot2_msgs/msg/obstacle_array_msg.hpp"
 #include "multibot2_msgs/srv/queue_rivision.hpp"
 
 namespace multibot2_robot
@@ -38,6 +45,7 @@ namespace multibot2_robot
         typedef multibot2_msgs::msg::Task Task;
         typedef multibot2_msgs::msg::Neighbor Neighbor;
         typedef multibot2_msgs::msg::Neighbors Neighbors;
+        typedef multibot2_msgs::msg::ObstacleArrayMsg ObstacleArrayMsg;
         typedef multibot2_msgs::srv::QueueRivision QueueRivision;
         typedef multibot2_util::PanelUtil::ModeSelection ModeSelection;
         typedef multibot2_util::PanelUtil::Mode Mode;
@@ -97,6 +105,9 @@ namespace multibot2_robot
         inline rclcpp_lifecycle::LifecyclePublisher<nav_msgs::msg::Path>::SharedPtr &rviz_path_pub() { return rviz_path_pub_; }
         inline const rclcpp_lifecycle::LifecyclePublisher<nav_msgs::msg::Path>::SharedPtr &rviz_path_pub() const { return rviz_path_pub_; }
 
+        inline rclcpp_lifecycle::LifecyclePublisher<ObstacleArrayMsg>::SharedPtr &local_obstacles_pub() { return local_obstacles_pub_; }
+        inline const rclcpp_lifecycle::LifecyclePublisher<ObstacleArrayMsg>::SharedPtr &local_obstacles_pub() const { return local_obstacles_pub_; }
+
     protected:
         Robot robot_;
         Pose subgoal_;
@@ -125,6 +136,8 @@ namespace multibot2_robot
         rclcpp::Client<Robot_ROS::QueueRivision>::SharedPtr queue_revision_;
 
         rclcpp_lifecycle::LifecyclePublisher<nav_msgs::msg::Path>::SharedPtr rviz_path_pub_;
+
+        rclcpp_lifecycle::LifecyclePublisher<ObstacleArrayMsg>::SharedPtr local_obstacles_pub_;
     }; // struct Robot_ROS
 
     class Instance_Manager
@@ -157,6 +170,8 @@ namespace multibot2_robot
         void init_variables();
         void init_parameters();
 
+        const nav2_costmap_2d::Costmap2D get_fake_local_costmap() const { return get_fake_costmap(*local_costmap_ros_->getCostmap()); };
+
     protected:
         void update_state()
         {
@@ -167,6 +182,8 @@ namespace multibot2_robot
         void update_pose();
 
         void report_state();
+
+        void report_local_obstacles();
 
     protected:
         void odom_callback(const nav_msgs::msg::Odometry::SharedPtr _odom_msg);
@@ -180,8 +197,12 @@ namespace multibot2_robot
         void neighbors_callback(const Robot_ROS::Neighbors::SharedPtr _neighbors_msg) { robot_ros_.neighbors() = *_neighbors_msg; }
 
     protected:
+        const nav2_costmap_2d::Costmap2D get_fake_costmap(const nav2_costmap_2d::Costmap2D _original_costmap) const;
+
+    protected:
         nav2_util::LifecycleNode::SharedPtr nh_;
         rclcpp::TimerBase::SharedPtr update_timer_;
+        rclcpp::TimerBase::SharedPtr local_obstacles_update_timer_;
 
         std::shared_ptr<tf2_ros::TransformListener> tf_listener_{nullptr};
         std::unique_ptr<tf2_ros::Buffer> tf_buffer_;

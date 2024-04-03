@@ -13,7 +13,7 @@ from nav2_common.launch import RewrittenYaml
 import yaml
 
 def generate_launch_description():
-    target = 'robot1_params.yaml'
+    target = 'robot5_params.yaml'
 
     multibot2_robot_dir = get_package_share_directory("multibot2_robot")
 
@@ -34,8 +34,8 @@ def generate_launch_description():
         launch_arguments={
             'robot_name': robot_params['name'],
             'robot_type': robot_params['type'],
-            'robot_model': xacro,
             'robot_config': robotConfig,
+            'robot_model': xacro,
             'frame_prefix': robot_params['name'] + '/',
             'odom_frame': robot_params['name'] + '/' + robot_params['odometry']['frame_id'],
             'base_frame': robot_params['name'] + '/' + robot_params['odometry']['child_frame_id'],

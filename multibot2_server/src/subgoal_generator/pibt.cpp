@@ -2,7 +2,7 @@
 
 namespace multibot2_server::SubgoalGenerator::PIBT
 {
-    Solver::Solver(const Config::SharedPtr &_cfg, const Robots &_robots, std::stack<std::string> _priority_graph, const CGAL::Polygon_with_holes_2<Kernel> &_map_poly)
+    Solver::Solver(const Config::SharedPtr &_cfg, const Robots &_robots, std::stack<std::string> _priority_graph)
         : cfg_(_cfg), robots_(_robots)
     {
         priority_list_.clear();
@@ -15,7 +15,7 @@ namespace multibot2_server::SubgoalGenerator::PIBT
                 priority_list_.push_back(robotName);
         }
 
-        set_bvc_generator(_map_poly);
+        set_bvc_generator();
 
         if (not(generate_diagrams()))
         {
@@ -108,7 +108,7 @@ namespace multibot2_server::SubgoalGenerator::PIBT
         return priorityInheritance(_childName, candidates, _close, _open);
     }
 
-    bool Solver::set_bvc_generator(const CGAL::Polygon_with_holes_2<Kernel> &_map_poly)
+    bool Solver::set_bvc_generator()
     {
         std::vector<Site_2> points;
 
@@ -119,7 +119,7 @@ namespace multibot2_server::SubgoalGenerator::PIBT
             points.push_back(Site_2(robot.pose().x(), robot.pose().y()));
         }
 
-        bvc_generator_ = std::make_shared<BufferedVoronoiDiagram>(cfg_, points, _map_poly);
+        bvc_generator_ = std::make_shared<BufferedVoronoiDiagram>(cfg_, points);
 
         return true;
     }
@@ -139,12 +139,15 @@ namespace multibot2_server::SubgoalGenerator::PIBT
             std::string candidateName = candidate.first;
             _close.emplace(candidateName);
 
-            if (_robotName != candidateName and not(priorityInheritance(candidateName, _robotName, _close, _open)))
+            if (_robotName != candidateName)
             {
-                _candidates.remove_if([&_close](Candidate _candidate)
-                                      { return _close.contains(_candidate.first); });
+                if (not(priorityInheritance(candidateName, _robotName, _close, _open)))
+                {
+                    _candidates.remove_if([&_close](Candidate _candidate)
+                                          { return _close.contains(_candidate.first); });
 
-                continue;
+                    continue;
+                }
             }
 
             Point_2 goal(robot.goal().x(), robot.goal().y());
@@ -261,21 +264,12 @@ namespace multibot2_server::SubgoalGenerator::PIBT
 
             voronoi_diagram_w_no_map_.emplace(robot.name(), voronoi_cell_w_no_map);
 
-            VoronoiCell voronoi_cell;
-            voronoi_cell.first = site;
-            if (not(bvc_generator_->get_polygon(site, voronoi_cell.second)))
-            {
-                std::cerr << "PIBT::Solver::generate_diagrams() "
-                          << "There is no voronoi cell." << std::endl;
+            VoronoiCell buffered_voronoi_cell;
+            buffered_voronoi_cell.first = site;
 
+            if (not(bvc_generator_->get_polygon(site, buffered_voronoi_cell.second, robot.local_obstacles(), robot.radius())))
                 continue;
-            }
 
-            VoronoiCell buffered_voronoi_cell = voronoi_cell;
-            // Todo: CGAL polygon offset function doesn't work in some cases. Need to fix or replace.
-            // if (not(bvc_generator_->convert_to_bvc(site, robot.radius(), buffered_voronoi_cell.second)))
-            //     continue;
-            // std::cout << "\t\t\t\tbvc_generator_->convert_to_bvc()" << std::endl;
             buffered_voronoi_diagram_.emplace(robot.name(), buffered_voronoi_cell);
         }
 

@@ -26,6 +26,7 @@
 #include "multibot2_msgs/msg/neighbors.hpp"
 #include "multibot2_msgs/msg/robot_with_trajectory.hpp"
 #include "multibot2_msgs/msg/robot_with_trajectory_array.hpp"
+#include "multibot2_msgs/msg/obstacle_array_msg.hpp"
 #include "multibot2_msgs/srv/queue_rivision.hpp"
 
 using namespace multibot2_util;
@@ -40,6 +41,7 @@ namespace multibot2_server
         typedef multibot2_msgs::msg::Neighbors Neighbors;
         typedef multibot2_msgs::msg::RobotWithTrajectory RobotWithTrajectory;
         typedef multibot2_msgs::msg::RobotWithTrajectoryArray RobotWithTrajectoryArray;
+        typedef multibot2_msgs::msg::ObstacleArrayMsg ObstacleArrayMsg;
         typedef multibot2_msgs::srv::QueueRivision QueueRivision;
 
         Robot robot_;
@@ -64,6 +66,7 @@ namespace multibot2_server
         rclcpp::Subscription<RobotWithTrajectory>::SharedPtr local_trajectory_sub_;
         rclcpp_lifecycle::LifecyclePublisher<RobotWithTrajectoryArray>::SharedPtr dynamic_obstacles_pub_;
         rclcpp::Service<QueueRivision>::SharedPtr queue_revision_;
+        rclcpp::Subscription<ObstacleArrayMsg>::SharedPtr local_obstacles_sub_;
     }; // struct Robot_ROS
 
     class Instance_Manager
@@ -139,6 +142,8 @@ namespace multibot2_server
         void convert_map_to_polygons();
 
         void robotState_callback(const Robot_ROS::State::SharedPtr _state_msg);
+
+        void local_obstacles_callback(const Robot_ROS::ObstacleArrayMsg::SharedPtr _obstacle_array_msg);
 
         void local_trajectory_callback(const Robot_ROS::RobotWithTrajectory::SharedPtr _trajectory_msg);
 
