@@ -4,13 +4,15 @@
       name: "DiffDrive"
 
       spawn: # Optional: Gazebo Initial Spwan Pose
-        x: 10.2
-        y: 6.3
+        x: 5.0
+        y: 5.0
         theta: 0.0
 
       type: "DiffDrive" # types: "DiffDrive" or "CarLike"
 
-      radius: 0.70
+      model: "DiffDrive" # model: "DiffDrive" or "GoCart180"
+
+      radius: 0.75
 
       wheels:
         seperation: 0.5

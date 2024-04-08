@@ -115,6 +115,8 @@ def generate_launch_description():
     )
 
     # Gazebo
+    world = os.path.join(multibot2_server_dir, 'worlds', 'random_forest.world')
+    
     start_gazebo_server_cmd = ExecuteProcess(
         cmd=['gzserver', '--verbose', '-s', 'libgazebo_ros_init.so', '-s', 'libgazebo_ros_factory.so', world],
 		cwd=[multibot2_server_dir], output='screen'

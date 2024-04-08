@@ -3,14 +3,26 @@
     robot:
       name: "Robot5"
 
+      # Warehouse
+      # goal:
+      #   x: 13.4
+      #   y: 1.3
+      #   theta: 0.0
+
+      # spawn: # Optional: Gazebo Initial Spwan Pose
+      #   x: 6.8
+      #   y: 1.3
+      #   theta: 0.0
+
+      # Warehouse
       goal:
-        x: 13.4
-        y: 1.3
-        theta: 0.0
+        x: 21.0
+        y: 13.0
+        theta: -3.14
 
       spawn: # Optional: Gazebo Initial Spwan Pose
-        x: 6.8
-        y: 1.3
+        x: 5.0
+        y: 13.0
         theta: 0.0
 
       type: "DiffDrive" # types: "DiffDrive" or "CarLike"

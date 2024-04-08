@@ -1,29 +1,18 @@
 /**:
   ros__parameters:
     robot:
-      name: "Robot4"
-
-      # Warehouse
-      # goal:
-      #   x: 10.2
-      #   y: 6.3
-      #   theta: 0.0
-
-      # spawn: # Optional: Gazebo Initial Spwan Pose
-      #   x: 14.3
-      #   y: 3.2
-      #   theta: 1.57
+      name: "Robot8"
 
       # Random Forest
       goal:
-        x: 18.6569
-        y: 7.3431
-        theta: 2.3562
-
-      spawn: # Optional: Gazebo Initial Spwan Pose
         x: 7.3431
         y: 18.6569
         theta: -0.7854
+
+      spawn: # Optional: Gazebo Initial Spwan Pose
+        x: 18.6569
+        y: 7.3431
+        theta: 2.3562
 
       type: "DiffDrive" # types: "DiffDrive" or "CarLike"
 

@@ -470,6 +470,9 @@ namespace multibot2_server
 
     void Instance_Manager::update_neighbors()
     {
+        if (mode_ == "V-RVO")
+            return;
+
         for (auto &robotPair : robots_)
         {
             Robot &robot = robotPair.second.robot_;
@@ -480,7 +483,6 @@ namespace multibot2_server
         if (robots_.size() < 2)
             return;
 
-        // for (auto self_it = robots_.begin(); self_it != std::prev(robots_.end()); ++self_it)
         for (auto self_it = robots_.begin(); self_it != robots_.end(); ++self_it)
         {
             Robot &self = self_it->second.robot_;

@@ -1,0 +1,67 @@
+<?xml version='1.0'?>
+<sdf version='1.7'>
+    <model name="random_forest">
+        <pose>0 0 0 0 0 0</pose>
+
+        <include>
+            <uri>model://tree_type_tall</uri>
+            <name>upper_left_1</name>
+            <pose frame="">-4.6 2.2 0 0 0 0</pose>
+        </include>
+
+        <include>
+            <uri>model://tree_type_short</uri>
+            <name>upper_left_2</name>
+            <pose frame="">-4.2 0.9 0 0 0 0</pose>
+        </include>
+
+        <include>
+            <uri>model://tree_type_tall</uri>
+            <name>upper_left_3</name>
+            <pose frame="">-4.4 -0.7 0 0 0 0</pose>
+        </include>
+
+        <include>
+            <uri>model://tree_type_tall</uri>
+            <name>lower_middle_1</name>
+            <pose frame="">-1.3 -5.1 0 0 0 0</pose>
+        </include>
+
+        <include>
+            <uri>model://tree_type_short</uri>
+            <name>lower_middle_2</name>
+            <pose frame="">0.3 -4.5 0 0 0 0</pose>
+        </include>
+
+        <include>
+            <uri>model://tree_type_short</uri>
+            <name>middle_right_1</name>
+            <pose frame="">4.0 1.1 0 0 0 0</pose>
+        </include>
+
+        <include>
+            <uri>model://tree_type_tall</uri>
+            <name>middle_right_2</name>
+            <pose frame="">3.5 -0.3 0 0 0 0</pose>
+        </include>
+
+        <include>
+            <uri>model://tree_type_short</uri>
+            <name>middle_right_3</name>
+            <pose frame="">4.8 0 0 0 0 0</pose>
+        </include>
+
+        <include>
+            <uri>model://tree_type_short</uri>
+            <name>upper_middle_1</name>
+            <pose frame="">-1.1 4.8 0 0 0 0</pose>
+        </include>
+
+        <include>
+            <uri>model://tree_type_tall</uri>
+            <name>upper_middle_2</name>
+            <pose frame="">0 4.0 0 0 0 0</pose>
+        </include>
+
+    </model>
+</sdf>
