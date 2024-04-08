@@ -13,6 +13,7 @@ namespace multibot2_server::SubgoalGenerator
         typedef std::shared_ptr<Config> SharedPtr;
 
     public:
+        std::string mode_{"V-PIBT"};
         double timeout_{1.0};
 
         struct BufferedVoronoiDiagram

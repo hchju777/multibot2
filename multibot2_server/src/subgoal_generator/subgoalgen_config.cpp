@@ -16,6 +16,7 @@ namespace multibot2_server::SubgoalGenerator
 
     void Config::loadRosParamFromNodeHandle(const nav2_util::LifecycleNode::SharedPtr _nh)
     {
+        _nh->get_parameter_or("server.mode", mode_, mode_);
         _nh->get_parameter_or("server.subgoal_generator.timeout", timeout_, timeout_);
 
         _nh->get_parameter_or("server.subgoal_generator.buffered_voronoi_diagram.min_offset", buffered_voronoi_diagram_.min_offset_, buffered_voronoi_diagram_.min_offset_);
