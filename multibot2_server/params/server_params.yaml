@@ -4,7 +4,7 @@
       communication_range: 3.5
       lookahead_dist: 5.0
 
-      mode: "V-RVO" # "V-PIBT" "DTEB" "V-RVO"
+      mode: "V-PIBT" # "V-PIBT" "DTEB" "V-RVO"
       
       subgoal_generator:
         duration: 0.05
