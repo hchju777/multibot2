@@ -41,11 +41,13 @@ namespace multibot2_server
 
     void Instance_Manager::init_parameters()
     {
+        nh_->declare_parameter("server.record", record_);
         nh_->declare_parameter("server.communication_range", communication_range_);
         nh_->declare_parameter("server.lookahead_dist", lookahead_dist_);
         nh_->declare_parameter("server.subgoal_generator.duration", subgoal_generator_duration_);
         nh_->declare_parameter("server.mode", mode_);
 
+        nh_->get_parameter_or("server.record", record_, record_);
         nh_->get_parameter_or("server.communication_range", communication_range_, communication_range_);
         nh_->get_parameter_or("server.lookahead_dist", lookahead_dist_, lookahead_dist_);
         nh_->get_parameter_or("server.subgoal_generator.duration", subgoal_generator_duration_, subgoal_generator_duration_);
@@ -383,6 +385,63 @@ namespace multibot2_server
     {
         if (robots_.contains(_robotName))
             robots_[_robotName].subgoal_pose_pub_->publish(_subgoal_msg);
+    }
+
+    void Instance_Manager::record_computation_time(const double _sec)
+    {
+        if (not(record_ and record_flag_))
+            return;
+
+        static double total_computation_time = 0.0;
+        static int computation_number = 0;
+
+        total_computation_time += _sec;
+        computation_number++;
+
+        computation_time_ = total_computation_time / computation_number;
+    }
+
+    void Instance_Manager::record_robot_poses()
+    {
+        if (not(record_ and record_flag_))
+            return;
+
+        std::vector<multibot2_util::Pose> robot_poses;
+        for (const auto &robotPair : robots_)
+            robot_poses.push_back(robotPair.second.robot_.pose());
+
+        pose_table_.push_back(std::make_pair(std::chrono::system_clock::now(), robot_poses));
+    }
+
+    void Instance_Manager::export_recording()
+    {
+        record_flag_ = false;
+
+        std::cout << "=====================================================" << std::endl;
+        std::cout << "Stop" << std::endl;
+
+        std::chrono::duration<double> transition_time = pose_table_.back().first - pose_table_.front().first;
+
+        std::cout << "Transition time: " << transition_time.count() << "s" << std::endl;
+        std::cout << "Compuation time: " << computation_time_ * 1000 << "ms" << std::endl;
+
+        double total_transition_length = 0.0;
+        for (size_t timeStep = 0; timeStep < pose_table_.size(); ++timeStep)
+        {
+            static std::vector<multibot2_util::Pose> prior_pose_vec = pose_table_[timeStep].second;
+            if (timeStep == 0)
+                continue;
+
+            for (size_t robotIdx = 0; robotIdx < prior_pose_vec.size(); ++robotIdx)
+            {
+                auto relative_pose = pose_table_[timeStep].second[robotIdx] - prior_pose_vec[robotIdx];
+                total_transition_length += relative_pose.position().norm();
+            }
+
+            prior_pose_vec = pose_table_[timeStep].second;
+        }
+        total_transition_length /= robots_.size();
+        std::cout << "Transition length: " << total_transition_length << "m" << std::endl;
     }
 
     void Instance_Manager::convert_map_to_polygons()

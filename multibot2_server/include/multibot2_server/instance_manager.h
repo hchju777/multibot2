@@ -90,6 +90,9 @@ namespace multibot2_server
         costmap_converter::PolygonContainerConstPtr &static_obstacles() { return static_obstacles_; }
         const costmap_converter::PolygonContainerConstPtr &static_obstacles() const { return static_obstacles_; }
 
+        bool &record() { return record_; }
+        const bool &record() const { return record_; }
+
         double &subgoal_generator_duration() { return subgoal_generator_duration_; }
         const double &subgoal_generator_duration() const { return subgoal_generator_duration_; }
 
@@ -138,6 +141,15 @@ namespace multibot2_server
         void queue_revision(const std::shared_ptr<Robot_ROS::QueueRivision::Request> _request,
                             std::shared_ptr<Robot_ROS::QueueRivision::Response> _response);
 
+    public:
+        void start_recording() { record_flag_ = true; };
+
+        void record_computation_time(const double _sec);
+
+        void record_robot_poses();
+
+        void export_recording();
+
     protected:
         void convert_map_to_polygons();
 
@@ -173,6 +185,11 @@ namespace multibot2_server
         costmap_converter::PolygonContainerConstPtr static_obstacles_;
 
         std::shared_ptr<nav2_navfn_planner::NavfnPlanner> navfn_global_planner_;
+
+        bool record_{false};
+        bool record_flag_{false};
+        double computation_time_{0.0};
+        std::vector<std::pair<std::chrono::_V2::system_clock::time_point, std::vector<multibot2_util::Pose>>> pose_table_;
 
         double communication_range_{4.0};
         double lookahead_dist_{5.0};

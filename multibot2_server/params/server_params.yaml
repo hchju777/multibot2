@@ -5,6 +5,7 @@
       lookahead_dist: 5.0
 
       mode: "V-PIBT" # "V-PIBT" "DTEB" "V-RVO"
+      record: True
       
       subgoal_generator:
         duration: 0.05
@@ -18,4 +19,3 @@
         
         pibt:
           min_stopping_dist: 0.25
-          min_truncated_area: 0.2
