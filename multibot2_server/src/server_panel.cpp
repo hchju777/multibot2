@@ -122,6 +122,9 @@ namespace multibot2_server
     {
         planState_ = PanelUtil::PlanState::READY;
 
+        if (instance_manager_->record())
+            instance_manager_->start_recording();
+
         for (const auto &robotPair : instance_manager_->robots())
         {
             const Robot_ROS &robot_ros = robotPair.second;
@@ -142,6 +145,9 @@ namespace multibot2_server
     {
         std_msgs::msg::Bool stopActivated;
         stopActivated.data = true;
+
+        if (instance_manager_->record())
+            instance_manager_->export_recording();
 
         emergencyStop_->publish(stopActivated);
     }

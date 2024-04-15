@@ -4,26 +4,26 @@
       name: "Robot1"
 
       # Warehouse
-      # goal:
-      #   x: 15.6
-      #   y: 6.3
-      #   theta: 0.0
-
-      # spawn: # Optional: Gazebo Initial Spwan Pose
-      #   x: 10.2
-      #   y: 6.3
-      #   theta: 0.0
-
-      # Random Forest
       goal:
-        x: 5.0
-        y: 13.0
+        x: 15.6
+        y: 6.3
         theta: 0.0
 
       spawn: # Optional: Gazebo Initial Spwan Pose
-        x: 21.0
-        y: 13.0
-        theta: 3.14
+        x: 10.2
+        y: 6.3
+        theta: 0.0
+
+      # # Random Forest
+      # goal:
+      #   x: 4.5
+      #   y: 13.0
+      #   theta: 0.0
+
+      # spawn: # Optional: Gazebo Initial Spwan Pose
+      #   x: 21.5
+      #   y: 13.0
+      #   theta: 3.14
 
       type: "DiffDrive" # types: "DiffDrive" or "CarLike"
 
@@ -50,6 +50,7 @@
         rear_radius: 0.55 # for type "two_circles"
 
       goal_tolerance: 0.25
+      # goal_tolerance: 0.20
 
       avoidance_dist: 5.0
 

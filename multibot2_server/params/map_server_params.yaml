@@ -1,6 +1,6 @@
 map_server:
     ros__parameters:
-        map: "random_forest"
+        map: "warehouse" # warehouse or random_forest
         yaml_filename: ""
         topic_name: "map"
         frame_id: "map"

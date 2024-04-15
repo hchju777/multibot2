@@ -76,7 +76,11 @@ namespace multibot2_server
         if (instance_manager_->robots().empty())
             return;
 
-        if (instance_manager_->getMode() == "V-PIBT")
+        if (instance_manager_->record())
+            instance_manager_->record_robot_poses();
+
+        if (instance_manager_->getMode() == "V-PIBT" or
+            instance_manager_->getMode() == "V-RVO")
         {
             std::map<std::string, Robot> robots;
             for (const auto &robot_rosPair : instance_manager_->robots())
@@ -86,9 +90,12 @@ namespace multibot2_server
                 robots.emplace(robot.name(), robot);
             }
 
-            // std::chrono::system_clock::time_point start = std::chrono::system_clock::now();
+            std::chrono::system_clock::time_point start = std::chrono::system_clock::now();
             subgoal_generator_->update_subgoals(robots);
-            // std::chrono::duration<double> sec = std::chrono::system_clock::now() - start;
+            std::chrono::duration<double> sec = std::chrono::system_clock::now() - start;
+
+            if (instance_manager_->record())
+                instance_manager_->record_computation_time(sec.count());
 
             for (const auto &robotPair : robots)
             {
@@ -114,7 +121,7 @@ namespace multibot2_server
                 geometry_msgs::msg::PoseStamped goal_pose;
                 robotPair.second.robot_.goal().toPoseMsg(goal_pose.pose);
 
-                instance_manager_->goal_pose_pub(robotName, goal_pose);
+                instance_manager_->subgoal_pose_pub(robotName, goal_pose);
             }
         }
     }

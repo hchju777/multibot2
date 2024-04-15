@@ -154,6 +154,7 @@ def generate_launch_description():
             'footprint_model.rear_offset': str(robot_params['footprint_model']['rear_offset']),
             'footprint_model.rear_radius': str(robot_params['footprint_model']['rear_radius']),
             'inflation_dist': str(robot_params['radius']),
+            'dynamic_obstacle_inflation_dist': str(robot_params['radius']),
             'max_vel_x': str(robot_params['velocity_profile']['max_vel_x']),
             'max_vel_theta': str(robot_params['velocity_profile']['max_vel_theta']),
             'acc_lim_x': str(robot_params['velocity_profile']['acc_lim_x']),

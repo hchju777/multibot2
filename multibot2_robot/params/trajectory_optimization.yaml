@@ -11,8 +11,9 @@ robot:
       footprint_model.front_radius: 0.7 # for type "two_circles"
       footprint_model.rear_offset: 0.4 # for type "two_circles"
       footprint_model.rear_radius: 0.6 # for type "two_circles"
-      min_obstacle_dist: 0.2
+      # min_obstacle_dist: 0.2
       inflation_dist: 0.7
+      dynamic_obstacle_inflation_dist: 0.7
       costmap_converter_plugin: "costmap_converter::CostmapToPolygonsDBSMCCH"
       costmap_converter_spin_thread: True
       costmap_converter_rate: 15

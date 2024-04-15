@@ -61,19 +61,29 @@ namespace multibot2_server::SubgoalGenerator::PIBT
 
     Robots Solver::solve()
     {
-        std::set<std::string> open, close;
+        std::set<std::string> initial_open, open, close;
         for (const auto &robotPair : robots_)
         {
             std::string robotName = robotPair.first;
 
+            initial_open.emplace(robotName);
             open.emplace(robotName);
         }
 
-        while (not(open.empty()))
+        while (not(open.empty()) and not(priority_list_.empty()))
         {
             Robot robot = robots_[priority_list_.front()];
 
-            priorityInheritance(robot.name(), close, open);
+            // priorityInheritance(robot.name(), close, open);
+            if (not(priorityInheritance(robot.name(), close, open)))
+            {
+                open = initial_open;
+                close.clear();
+
+                priority_list_.pop_front();
+
+                continue;
+            }
 
             priority_list_.remove_if([&open](std::string _robotName)
                                      { return not(open.contains(_robotName)); });
@@ -271,8 +281,13 @@ namespace multibot2_server::SubgoalGenerator::PIBT
             VoronoiCell buffered_voronoi_cell;
             buffered_voronoi_cell.first = site;
 
-            if (not(bvc_generator_->get_polygon(site, buffered_voronoi_cell.second, robot.local_obstacles(), robot.radius())))
-                continue;
+            if (cfg_->mode_ == "V-PIBT")
+            {
+                if (not(bvc_generator_->get_polygon(site, buffered_voronoi_cell.second, robot.local_obstacles(), robot.radius())))
+                    continue;
+            }
+            else if (cfg_->mode_ == "V-RVO")
+                buffered_voronoi_cell.second.outer_boundary() = voronoi_cell_w_no_map.second;
 
             buffered_voronoi_diagram_.emplace(robot.name(), buffered_voronoi_cell);
         }
