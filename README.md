@@ -40,16 +40,16 @@ sudo apt install libyaml-cpp-dev
 ros2 launch multibot2_server multibot2_server_simul_launch.py 
 ```
 ### 3-2. Launch multibot2_robot
-#### Spawn robots at once
+Spawn robots at once
 ```
 ros2 launch multibot2_server multibot2_robots_sim_launch.py 
 ```
-#### Spawn a robot
+Spawn a robot
 ```
 ros2 launch multibot2_robot robot1_sim_launch.py 
 ```
 ### 3-3. Connect robots to the server & Run
-#### Press **`Scan`** button to connect robots to server, then press **`Start`** button.
+Press **`Scan`** button to connect robots to server, then press **`Start`** button.
 ![server panel](https://github.com/hchju777/multibot2/assets/169625948/c0618dca-adea-4a38-bd71-097042866f8b)
 
 ## 4. Results
