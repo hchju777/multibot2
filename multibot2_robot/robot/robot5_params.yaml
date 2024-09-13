@@ -3,16 +3,27 @@
     robot:
       name: "Robot5"
 
-      # Random Forest
+      # Sparse Warehouse
       goal:
-        x: 21.5
-        y: 13.0
-        theta: -3.14
+        x: 15.6
+        y: 6.3
+        theta: 0.0
 
       spawn: # Optional: Gazebo Initial Spwan Pose
-        x: 4.5
-        y: 13.0
+        x: 15.3
+        y: 3.7
         theta: 0.0
+
+      # # Random Forest
+      # goal:
+      #   x: 21.5
+      #   y: 13.0
+      #   theta: -3.14
+
+      # spawn: # Optional: Gazebo Initial Spwan Pose
+      #   x: 4.5
+      #   y: 13.0
+      #   theta: 0.0
 
       type: "DiffDrive" # types: "DiffDrive" or "CarLike"
 

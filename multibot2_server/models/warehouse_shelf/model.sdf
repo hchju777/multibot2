@@ -1,0 +1,37 @@
+<?xml version='1.0'?>
+<sdf version='1.7'>
+    <model name="warehouse_shelf">
+        <pose>0 0 0 0 0 0</pose>
+
+        <include>
+            <uri>model://aws_robomaker_warehouse_ShelfE_01</uri>
+            <name>shelf</name>
+            <pose frame="">0 0 0 0 0 0</pose>
+        </include>
+
+        <include>
+            <uri>model://cardboard_box_group</uri>
+            <name>box1</name>
+            <pose frame="">1 0 0 0 0 1.57</pose>
+        </include>
+
+        <include>
+            <uri>model://cardboard_box_group</uri>
+            <name>box2</name>
+            <pose frame="">1 0 0.3 0 0 1.57</pose>
+        </include>
+
+        <include>
+            <uri>model://cardboard_box_group</uri>
+            <name>box3</name>
+            <pose frame="">-1 0 0 0 0 1.57</pose>
+        </include>
+
+        <include>
+            <uri>model://cardboard_box_group</uri>
+            <name>box4</name>
+            <pose frame="">-1 0 0.3 0 0 1.57</pose>
+        </include>
+
+    </model>
+</sdf>
