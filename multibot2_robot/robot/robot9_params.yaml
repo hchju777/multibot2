@@ -1,7 +1,7 @@
 /**:
   ros__parameters:
     robot:
-      name: "Robot4"
+      name: "Robot9"
 
       # Sparse Warehouse
       goal:
@@ -10,31 +10,20 @@
         theta: 0.0
 
       spawn: # Optional: Gazebo Initial Spwan Pose
-        x: 6.5
-        y: 18.7
+        x: 24.1
+        y: 3.7
         theta: 0.0
-
-      # # Warehouse
-      # goal:
-      #   x: 14.3
-      #   y: 3.2
-      #   theta: 1.57
-
-      # spawn: # Optional: Gazebo Initial Spwan Pose
-      #   x: 14.3
-      #   y: 8.8
-      #   theta: -1.57
 
       # # Random Forest
       # goal:
-      #   x: 19.0104
-      #   y: 6.9896
-      #   theta: 2.3562
-
-      # spawn: # Optional: Gazebo Initial Spwan Pose
       #   x: 6.9896
       #   y: 19.0104
       #   theta: -0.7854
+
+      # spawn: # Optional: Gazebo Initial Spwan Pose
+      #   x: 19.0104
+      #   y: 6.9896
+      #   theta: 2.3562
 
       type: "DiffDrive" # types: "DiffDrive" or "CarLike"
 
@@ -61,7 +50,6 @@
         rear_radius: 0.55 # for type "two_circles"
 
       goal_tolerance: 0.25
-      # goal_tolerance: 0.20
 
       avoidance_dist: 5.0
       

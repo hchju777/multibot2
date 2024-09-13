@@ -3,16 +3,27 @@
     robot:
       name: "Robot8"
 
-      # Random Forest
+      # Sparse Warehouse
       goal:
-        x: 6.9896
-        y: 19.0104
-        theta: -0.7854
+        x: 15.6
+        y: 6.3
+        theta: 0.0
 
       spawn: # Optional: Gazebo Initial Spwan Pose
-        x: 19.0104
-        y: 6.9896
-        theta: 2.3562
+        x: 15.3
+        y: 18.7
+        theta: 0.0
+
+      # # Random Forest
+      # goal:
+      #   x: 6.9896
+      #   y: 19.0104
+      #   theta: -0.7854
+
+      # spawn: # Optional: Gazebo Initial Spwan Pose
+      #   x: 19.0104
+      #   y: 6.9896
+      #   theta: 2.3562
 
       type: "DiffDrive" # types: "DiffDrive" or "CarLike"
 

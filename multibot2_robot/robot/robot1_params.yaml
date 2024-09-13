@@ -3,16 +3,27 @@
     robot:
       name: "Robot1"
 
-      # Warehouse
+      # Sparse Warehouse
       goal:
         x: 15.6
         y: 6.3
         theta: 0.0
 
       spawn: # Optional: Gazebo Initial Spwan Pose
-        x: 10.2
-        y: 6.3
+        x: 6.5
+        y: 3.7
         theta: 0.0
+
+      # # Warehouse
+      # goal:
+      #   x: 15.6
+      #   y: 6.3
+      #   theta: 0.0
+
+      # spawn: # Optional: Gazebo Initial Spwan Pose
+      #   x: 10.2
+      #   y: 6.3
+      #   theta: 0.0
 
       # # Random Forest
       # goal:
