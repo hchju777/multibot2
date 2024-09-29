@@ -147,19 +147,29 @@ namespace multibot2_robot
     {
         Robot &robot = robot_ros_.robot();
         {
-            nh_->declare_parameter("robot.name", robot.name());
-            nh_->declare_parameter("robot.type", robot.type());
+            if (not(nh_->has_parameter("robot.name")))
+                nh_->declare_parameter("robot.name", robot.name());
+            if (not(nh_->has_parameter("robot.type")))
+                nh_->declare_parameter("robot.type", robot.type());
 
-            nh_->declare_parameter("robot.goal.x", robot.goal().x());
-            nh_->declare_parameter("robot.goal.y", robot.goal().y());
-            nh_->declare_parameter("robot.goal.theta", robot.goal().theta());
+            if (not(nh_->has_parameter("robot.goal.x")))
+                nh_->declare_parameter("robot.goal.x", robot.goal().x());
+            if (not(nh_->has_parameter("robot.goal.y")))
+                nh_->declare_parameter("robot.goal.y", robot.goal().y());
+            if (not(nh_->has_parameter("robot.goal.theta")))
+                nh_->declare_parameter("robot.goal.theta", robot.goal().theta());
 
-            nh_->declare_parameter("robot.radius", robot.radius());
+            if (not(nh_->has_parameter("robot.radius")))
+                nh_->declare_parameter("robot.radius", robot.radius());
 
-            nh_->declare_parameter("robot.velocity_profile.max_vel_x", robot.max_vel_x());
-            nh_->declare_parameter("robot.velocity_profile.max_vel_theta", robot.max_vel_theta());
-            nh_->declare_parameter("robot.velocity_profile.acc_lim_x", robot.acc_lim_x());
-            nh_->declare_parameter("robot.velocity_profile.acc_lim_theta", robot.acc_lim_theta());
+            if (not(nh_->has_parameter("robot.velocity_profile.max_vel_x")))
+                nh_->declare_parameter("robot.velocity_profile.max_vel_x", robot.max_vel_x());
+            if (not(nh_->has_parameter("robot.velocity_profile.max_vel_theta")))
+                nh_->declare_parameter("robot.velocity_profile.max_vel_theta", robot.max_vel_theta());
+            if (not(nh_->has_parameter("robot.velocity_profile.acc_lim_x")))
+                nh_->declare_parameter("robot.velocity_profile.acc_lim_x", robot.acc_lim_x());
+            if (not(nh_->has_parameter("robot.velocity_profile.acc_lim_theta")))
+                nh_->declare_parameter("robot.velocity_profile.acc_lim_theta", robot.acc_lim_theta());
 
             nh_->get_parameter_or("robot.name", robot.name(), robot.name());
             nh_->get_parameter_or("robot.type", robot.type(), robot.type());

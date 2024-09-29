@@ -41,11 +41,16 @@ namespace multibot2_server
 
     void Instance_Manager::init_parameters()
     {
-        nh_->declare_parameter("server.record", record_);
-        nh_->declare_parameter("server.communication_range", communication_range_);
-        nh_->declare_parameter("server.lookahead_dist", lookahead_dist_);
-        nh_->declare_parameter("server.subgoal_generator.duration", subgoal_generator_duration_);
-        nh_->declare_parameter("server.mode", mode_);
+        if (not(nh_->has_parameter("server.record")))
+            nh_->declare_parameter("server.record", record_);
+        if (not(nh_->has_parameter("server.communication_range")))
+            nh_->declare_parameter("server.communication_range", communication_range_);
+        if (not(nh_->has_parameter("server.lookahead_dist")))
+            nh_->declare_parameter("server.lookahead_dist", lookahead_dist_);
+        if (not(nh_->has_parameter("server.subgoal_generator.duration")))
+            nh_->declare_parameter("server.subgoal_generator.duration", subgoal_generator_duration_);
+        if (not(nh_->has_parameter("server.mode")))
+            nh_->declare_parameter("server.mode", mode_);
 
         nh_->get_parameter_or("server.record", record_, record_);
         nh_->get_parameter_or("server.communication_range", communication_range_, communication_range_);
@@ -200,8 +205,10 @@ namespace multibot2_server
         robots_.insert(std::make_pair(robotName, robot_ros));
 
         RCLCPP_INFO(nh_->get_logger(), "Instance_Manager::insertRobot()");
-        RCLCPP_INFO(nh_->get_logger(), "New Robot " + robotName + " is registered.");
-        RCLCPP_INFO(nh_->get_logger(), "Total Robots: " + std::to_string(robots_.size()) + "EA");
+        // RCLCPP_INFO(nh_->get_logger(), "New Robot " + robotName + " is registered.");
+        RCLCPP_INFO(nh_->get_logger(), "New Robot %s is registered.", robotName);
+        // RCLCPP_INFO(nh_->get_logger(), "Total Robots: " + std::to_string(robots_.size()) + "EA");
+        RCLCPP_INFO(nh_->get_logger(), "Total Robots: %dEA", robots_.size());
         std::cout << robot_ros.robot_ << std::endl;
     }
 
@@ -212,8 +219,10 @@ namespace multibot2_server
         {
             robots_.erase(_robotName);
 
-            RCLCPP_INFO(nh_->get_logger(), "Robot " + _robotName + " is deleted.");
-            RCLCPP_INFO(nh_->get_logger(), "Total Robots: " + std::to_string(robots_.size()) + "EA\n");
+            // RCLCPP_INFO(nh_->get_logger(), "Robot " + _robotName + " is deleted.");
+            RCLCPP_INFO(nh_->get_logger(), "Robot %s is deleted.", _robotName);
+            // RCLCPP_INFO(nh_->get_logger(), "Total Robots: " + std::to_string(robots_.size()) + "EA\n");
+            RCLCPP_INFO(nh_->get_logger(), "Total Robots: %dEA", robots_.size());
         }
     }
 

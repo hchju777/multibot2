@@ -49,7 +49,8 @@ namespace multibot2_server::SubgoalGenerator
             return false;
 
         CGAL::Lazy_exact_nt<boost::multiprecision::mpq_rational> offset(_offset);
-        auto inner_offset_polygons = CGAL::create_interior_skeleton_and_offset_polygons_2(offset, vn_poly);
+        // auto inner_offset_polygons = CGAL::create_interior_skeleton_and_offset_polygons_2(offset, vn_poly);
+        auto inner_offset_polygons = CGAL::create_interior_skeleton_and_offset_polygons_2(_offset, vn_poly);
 
         if (inner_offset_polygons.empty())
             return false;

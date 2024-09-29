@@ -65,7 +65,8 @@ namespace multibot2_robot::teb_local_planner
 {
 
   TebLocalPlannerROS::TebLocalPlannerROS()
-      : nh_(nullptr), logger_(rclcpp::get_logger("teb_logger")), intra_proc_node_(nullptr),
+      // : nh_(nullptr), logger_(rclcpp::get_logger("teb_logger")), intra_proc_node_(nullptr),
+      : intra_proc_node_(nullptr),
         costmap_ros_(nullptr), tf_(nullptr), cfg_(new TebConfig()),
         costmap_model_(nullptr), costmap_converter_loader_("costmap_converter", "costmap_converter::BaseCostmapToPolygons"),
         custom_via_points_active_(false), no_infeasible_plans_(0),
@@ -207,14 +208,14 @@ namespace multibot2_robot::teb_local_planner
   }
 
   void TebLocalPlannerROS::configure(
-      const rclcpp_lifecycle::LifecycleNode::SharedPtr &node,
+      const rclcpp_lifecycle::LifecycleNode::WeakPtr & parent,
       std::string name,
-      const std::shared_ptr<tf2_ros::Buffer> &tf,
-      const std::shared_ptr<nav2_costmap_2d::Costmap2DROS> &costmap_ros)
+      std::shared_ptr<tf2_ros::Buffer> tf,
+      std::shared_ptr<nav2_costmap_2d::Costmap2DROS> costmap_ros)
   {
-    nh_ = node;
+    nh_ = parent;
 
-    // auto lk = nh_.lock();
+    auto node = nh_.lock();
     logger_ = node->get_logger();
     clock_ = node->get_clock();
 
@@ -258,7 +259,8 @@ namespace multibot2_robot::teb_local_planner
 
   geometry_msgs::msg::TwistStamped TebLocalPlannerROS::computeVelocityCommands(
       const geometry_msgs::msg::PoseStamped &pose,
-      const geometry_msgs::msg::Twist &velocity)
+      const geometry_msgs::msg::Twist &velocity,
+      nav2_core::GoalChecker *goal_checker = nullptr)
   {
     // check if plugin initialized
     if (!initialized_)
@@ -733,7 +735,7 @@ namespace multibot2_robot::teb_local_planner
         }
         else
         {
-          RCLCPP_WARN(nh_->get_logger(), "Invalid custom obstalce received. Invalid Type. Skipping...");
+          RCLCPP_WARN(logger_, "Invalid custom obstalce received. Invalid Type. Skipping...");
           continue;
         }
 
@@ -1135,6 +1137,10 @@ namespace multibot2_robot::teb_local_planner
     }
   }
 
+  void TebLocalPlannerROS::setSpeedLimit(
+      const double & speed_limit, const bool & percentage)
+  {}
+
   void TebLocalPlannerROS::customObstacleCB(const costmap_converter_msgs::msg::ObstacleArrayMsg::ConstSharedPtr obst_msg)
   {
     std::lock_guard<std::mutex> l(custom_obst_mutex_);
@@ -1169,15 +1175,24 @@ namespace multibot2_robot::teb_local_planner
 
   RobotFootprintModelPtr TebLocalPlannerROS::getRobotFootprintFromParamServer(nav2_util::LifecycleNode::SharedPtr node)
   {
-    node->declare_parameter(name_ + "." + "footprint_model.type");
-    node->declare_parameter(name_ + "." + "footprint_model.radius");
-    node->declare_parameter(name_ + "." + "footprint_model.line_start");
-    node->declare_parameter(name_ + "." + "footprint_model.line_end");
-    node->declare_parameter(name_ + "." + "footprint_model.front_offset");
-    node->declare_parameter(name_ + "." + "footprint_model.front_radius");
-    node->declare_parameter(name_ + "." + "footprint_model.rear_offset");
-    node->declare_parameter(name_ + "." + "footprint_model.rear_radius");
-    node->declare_parameter(name_ + "." + "footprint_model.vertices");
+    if (not(node->has_parameter(name_ + "." + "footprint_model.type")))
+      node->declare_parameter(name_ + "." + "footprint_model.type", "two_circles");
+    if (not(node->has_parameter(name_ + "." + "footprint_model.radius")))
+      node->declare_parameter(name_ + "." + "footprint_model.radius", 0.7);
+    if (not(node->has_parameter(name_ + "." + "footprint_model.line_start")))
+      node->declare_parameter(name_ + "." + "footprint_model.line_start", 0.3);
+    if (not(node->has_parameter(name_ + "." + "footprint_model.line_end")))
+      node->declare_parameter(name_ + "." + "footprint_model.line_end", 0.4);
+    if (not(node->has_parameter(name_ + "." + "footprint_model.front_offset")))
+      node->declare_parameter(name_ + "." + "footprint_model.front_offset", 0.0);
+    if (not(node->has_parameter(name_ + "." + "footprint_model.front_radius")))
+      node->declare_parameter(name_ + "." + "footprint_model.front_radius", 0.7);
+    if (not(node->has_parameter(name_ + "." + "footprint_model.rear_offset")))
+      node->declare_parameter(name_ + "." + "footprint_model.rear_offset", 0.4);
+    if (not(node->has_parameter(name_ + "." + "footprint_model.rear_radius")))
+      node->declare_parameter(name_ + "." + "footprint_model.rear_radius", 0.6);
+    if (not(node->has_parameter(name_ + "." + "footprint_model.vertices")))
+      node->declare_parameter(name_ + "." + "footprint_model.vertices", "0.0");
 
     std::string model_name;
     if (!node->get_parameter(name_ + "." + "footprint_model.type", model_name))

@@ -22,13 +22,14 @@
 #include <memory>
 #include <vector>
 
-#include <geometry_msgs/msg/point.hpp>
-#include <geometry_msgs/msg/pose_stamped.hpp>
-#include <nav2_core/global_planner.hpp>
-#include <nav_msgs/msg/path.hpp>
-#include <nav2_util/robot_utils.hpp>
-#include <nav2_util/lifecycle_node.hpp>
-#include <nav2_costmap_2d/costmap_2d_ros.hpp>
+#include "geometry_msgs/msg/point.hpp"
+#include "geometry_msgs/msg/pose_stamped.hpp"
+#include "nav2_core/global_planner.hpp"
+#include "nav_msgs/msg/path.hpp"
+#include "nav2_util/robot_utils.hpp"
+#include "nav2_util/lifecycle_node.hpp"
+#include "nav2_costmap_2d/costmap_2d_ros.hpp"
+#include "nav2_util/geometry_utils.hpp"
 
 #include "multibot2_robot/global_planner/navfn.hpp"
 
@@ -56,9 +57,9 @@ namespace multibot2_robot::nav2_navfn_planner
      * @param costmap_ros Costmap2DROS object
      */
     void configure(
-        rclcpp_lifecycle::LifecycleNode::SharedPtr parent,
-        std::string name, std::shared_ptr<tf2_ros::Buffer> tf,
-        std::shared_ptr<nav2_costmap_2d::Costmap2DROS> costmap_ros) override;
+      const rclcpp_lifecycle::LifecycleNode::WeakPtr & parent,
+      std::string name, std::shared_ptr<tf2_ros::Buffer> tf,
+      std::shared_ptr<nav2_costmap_2d::Costmap2DROS> costmap_ros) override;
 
     /**
      * @brief Cleanup lifecycle node
@@ -75,6 +76,7 @@ namespace multibot2_robot::nav2_navfn_planner
      */
     void deactivate() override;
 
+
     /**
      * @brief Creating a plan from start and goal poses
      * @param start Start pose
@@ -82,8 +84,8 @@ namespace multibot2_robot::nav2_navfn_planner
      * @return nav_msgs::Path of the generated path
      */
     nav_msgs::msg::Path createPlan(
-        const geometry_msgs::msg::PoseStamped &start,
-        const geometry_msgs::msg::PoseStamped &goal) override;
+      const geometry_msgs::msg::PoseStamped & start,
+      const geometry_msgs::msg::PoseStamped & goal) override;
 
   protected:
     /**
@@ -95,16 +97,16 @@ namespace multibot2_robot::nav2_navfn_planner
      * @return true if can find the path
      */
     bool makePlan(
-        const geometry_msgs::msg::Pose &start,
-        const geometry_msgs::msg::Pose &goal, double tolerance,
-        nav_msgs::msg::Path &plan);
+      const geometry_msgs::msg::Pose & start,
+      const geometry_msgs::msg::Pose & goal, double tolerance,
+      nav_msgs::msg::Path & plan);
 
     /**
      * @brief Compute the navigation function given a seed point in the world to start from
      * @param world_point Point in world coordinate frame
      * @return true if can compute
      */
-    bool computePotential(const geometry_msgs::msg::Point &world_point);
+    bool computePotential(const geometry_msgs::msg::Point & world_point);
 
     /**
      * @brief Compute a plan to a goal from a potential - must call computePotential first
@@ -113,8 +115,8 @@ namespace multibot2_robot::nav2_navfn_planner
      * @return true if can compute a plan path
      */
     bool getPlanFromPotential(
-        const geometry_msgs::msg::Pose &goal,
-        nav_msgs::msg::Path &plan);
+      const geometry_msgs::msg::Pose & goal,
+      nav_msgs::msg::Path & plan);
 
     /**
      * @brief Remove artifacts at the end of the path - originated from planning on a discretized world
@@ -122,8 +124,8 @@ namespace multibot2_robot::nav2_navfn_planner
      * @param plan Computed path
      */
     void smoothApproachToGoal(
-        const geometry_msgs::msg::Pose &goal,
-        nav_msgs::msg::Path &plan);
+      const geometry_msgs::msg::Pose & goal,
+      nav_msgs::msg::Path & plan);
 
     /**
      * @brief Compute the potential, or navigation cost, at a given point in the world
@@ -131,7 +133,7 @@ namespace multibot2_robot::nav2_navfn_planner
      * @param world_point Point in world coordinate frame
      * @return double point potential (navigation cost)
      */
-    double getPointPotential(const geometry_msgs::msg::Point &world_point);
+    double getPointPotential(const geometry_msgs::msg::Point & world_point);
 
     // Check for a valid potential value at a given point in the world
     // - must call computePotential first
@@ -146,8 +148,8 @@ namespace multibot2_robot::nav2_navfn_planner
      * @return double squared distance between two points
      */
     inline double squared_distance(
-        const geometry_msgs::msg::Pose &p1,
-        const geometry_msgs::msg::Pose &p2)
+      const geometry_msgs::msg::Pose & p1,
+      const geometry_msgs::msg::Pose & p2)
     {
       double dx = p1.position.x - p2.position.x;
       double dy = p1.position.y - p2.position.y;
@@ -162,7 +164,7 @@ namespace multibot2_robot::nav2_navfn_planner
      * @param my int of map Y coordinate
      * @return true if can transform
      */
-    bool worldToMap(double wx, double wy, unsigned int &mx, unsigned int &my);
+    bool worldToMap(double wx, double wy, unsigned int & mx, unsigned int & my);
 
     /**
      * @brief Transform a point from map to world frame
@@ -171,7 +173,7 @@ namespace multibot2_robot::nav2_navfn_planner
      * @param wx double of world X coordinate
      * @param wy double of world Y coordinate
      */
-    void mapToWorld(double mx, double my, double &wx, double &wy);
+    void mapToWorld(double mx, double my, double & wx, double & wy);
 
     /**
      * @brief Set the corresponding cell cost to be free space
@@ -192,17 +194,20 @@ namespace multibot2_robot::nav2_navfn_planner
     // TF buffer
     std::shared_ptr<tf2_ros::Buffer> tf_;
 
-    // node ptr
-    nav2_util::LifecycleNode::SharedPtr node_;
+    // Clock
+    rclcpp::Clock::SharedPtr clock_;
+
+    // Logger
+    rclcpp::Logger logger_{rclcpp::get_logger("NavfnPlanner")};
 
     // Global Costmap
-    nav2_costmap_2d::Costmap2D *costmap_;
+    nav2_costmap_2d::Costmap2D * costmap_;
 
     // The global frame of the costmap
     std::string global_frame_, name_;
 
     // Whether or not the planner should be allowed to plan through unknown space
-    bool allow_unknown_;
+    bool allow_unknown_, use_final_approach_orientation_;
 
     // If the goal is obstructed, the tolerance specifies how many meters the planner
     // can relax the constraint in x and y before failing
@@ -211,15 +216,18 @@ namespace multibot2_robot::nav2_navfn_planner
     // Whether to use the astar planner or default dijkstras
     bool use_astar_;
 
-    // Subscription for parameter change
-    rclcpp::AsyncParametersClient::SharedPtr parameters_client_;
-    rclcpp::Subscription<rcl_interfaces::msg::ParameterEvent>::SharedPtr parameter_event_sub_;
+    // parent node weak ptr
+    rclcpp_lifecycle::LifecycleNode::WeakPtr node_;
+
+    // Dynamic parameters handler
+    rclcpp::node_interfaces::OnSetParametersCallbackHandle::SharedPtr dyn_params_handler_;
 
     /**
      * @brief Callback executed when a paramter change is detected
-     * @param event ParameterEvent message
+     * @param parameters list of changed parameters
      */
-    void on_parameter_event_callback(const rcl_interfaces::msg::ParameterEvent::SharedPtr event);
+    rcl_interfaces::msg::SetParametersResult
+    dynamicParametersCallback(std::vector<rclcpp::Parameter> parameters);
   };
 
 } // namespace nav2_navfn_planner
