@@ -14,7 +14,7 @@ def generate_launch_description():
     # List of robots to be simulated
     # robots = ["robot1", "robot2", "robot3", "robot4"]
     # robots = ["robot1", "robot2", "robot3", "robot4", "robot5", "robot6", "robot7", "robot8"]
-    robots = ["robot1", "robot2", "robot3", "robot4", "robot5", "robot6"]
+    robots = ["robot7", "robot8", "robot9", "robot10", "robot11", "robot12"]
     
     ld = LaunchDescription()
     threads = []
