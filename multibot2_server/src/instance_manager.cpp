@@ -451,6 +451,43 @@ namespace multibot2_server
         }
         total_transition_length /= robots_.size();
         std::cout << "Transition length: " << total_transition_length << "m" << std::endl;
+
+        export_poses();
+    }
+
+    void Instance_Manager::export_poses()
+    {
+        std::string directory_path_string = "src/multibot2/multibot2_server/result";
+        
+        std::filesystem::path directory_path(directory_path_string);
+        if (std::filesystem::exists(directory_path))
+            std::filesystem::remove_all(directory_path_string);
+
+        std::filesystem::create_directories(directory_path_string);
+
+        YAML::Node pose_result;
+
+        for (const auto &pose_data : pose_table_)
+        {
+            YAML::Node poses;
+
+            int cnt = 1;
+            for (const auto &pose : pose_data.second)
+            {
+                YAML::Node single_pose;
+                std::vector<double> pose_vec = {pose.x(), pose.y()};
+                single_pose[std::to_string(cnt)] = pose_vec;
+                single_pose[std::to_string(cnt)].SetStyle(YAML::EmitterStyle::Flow);
+
+                poses["poses"].push_back(single_pose);
+                cnt++;
+            }
+
+            pose_result.push_back(poses);
+        }
+
+        std::ofstream result(directory_path_string + "/poses.yaml");
+        result << pose_result;
     }
 
     void Instance_Manager::convert_map_to_polygons()
