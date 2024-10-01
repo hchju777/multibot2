@@ -281,12 +281,13 @@ namespace multibot2_server::SubgoalGenerator::PIBT
             VoronoiCell buffered_voronoi_cell;
             buffered_voronoi_cell.first = site;
 
-            if (cfg_->mode_ == "V-PIBT")
-            {
-                if (not(bvc_generator_->get_polygon(site, buffered_voronoi_cell.second, robot.local_obstacles(), robot.radius())))
-                    continue;
-            }
-            else if (cfg_->mode_ == "V-RVO")
+            // Todo: When update from foxy(CGAL 5.0) to humble(5.4), Somtimes process has died when creating Buffered Voronoi Diagram using CGAL. Temporarily inactivated
+            // if (cfg_->mode_ == "V-PIBT")
+            // {
+            //     if (not(bvc_generator_->get_polygon(site, buffered_voronoi_cell.second, robot.local_obstacles(), robot.radius())))
+            //         continue;
+            // }
+            // else if (cfg_->mode_ == "V-RVO")
                 buffered_voronoi_cell.second.outer_boundary() = voronoi_cell_w_no_map.second;
 
             buffered_voronoi_diagram_.emplace(robot.name(), buffered_voronoi_cell);
