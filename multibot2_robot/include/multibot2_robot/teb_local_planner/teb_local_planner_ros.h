@@ -112,10 +112,10 @@ namespace multibot2_robot::teb_local_planner
      * @param costmap_ros Cost map representing occupied and free space
      */
     void configure(
-        const rclcpp_lifecycle::LifecycleNode::SharedPtr &node,
+        const rclcpp_lifecycle::LifecycleNode::WeakPtr & parent,
         std::string name,
-        const std::shared_ptr<tf2_ros::Buffer> &tf,
-        const std::shared_ptr<nav2_costmap_2d::Costmap2DROS> &costmap_ros) override;
+        std::shared_ptr<tf2_ros::Buffer> tf,
+        std::shared_ptr<nav2_costmap_2d::Costmap2DROS> costmap_ros) override;
 
     void activate() override;
 
@@ -143,7 +143,8 @@ namespace multibot2_robot::teb_local_planner
      */
     geometry_msgs::msg::TwistStamped computeVelocityCommands(
         const geometry_msgs::msg::PoseStamped &pose,
-        const geometry_msgs::msg::Twist &velocity);
+        const geometry_msgs::msg::Twist &velocity,
+        nav2_core::GoalChecker * goal_checker);
 
     /** @name Public utility functions/methods */
     //@{
@@ -365,10 +366,13 @@ namespace multibot2_robot::teb_local_planner
 
     void configureBackupModes(std::vector<geometry_msgs::msg::PoseStamped> &transformed_plan, int &goal_idx);
 
+    void setSpeedLimit(const double & speed_limit,  const bool & percentage);
+
   private:
     // Definition of member variables
-    nav2_util::LifecycleNode::SharedPtr nh_;
-    rclcpp::Logger logger_;
+    nav2_util::LifecycleNode::WeakPtr nh_;
+    // rclcpp::Logger logger_;
+    rclcpp::Logger logger_{rclcpp::get_logger("TEBLocalPlanner")};
     rclcpp::Clock::SharedPtr clock_;
     rclcpp::Node::SharedPtr intra_proc_node_;
     // external objects (store weak pointers)

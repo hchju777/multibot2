@@ -51,6 +51,7 @@ set(FAKE_DRIVER_DEPENDENCIES
   nav_msgs
   sensor_msgs
   tf2_msgs
+  tf2_ros
 )
 
 set(FAKE_DRIVER_EXEC_NAME "fake_driver")
@@ -59,21 +60,21 @@ add_executable(${FAKE_DRIVER_EXEC_NAME} ${FAKE_DRIVER_SOURCES})
 
 ament_target_dependencies(${FAKE_DRIVER_EXEC_NAME} ${FAKE_DRIVER_DEPENDENCIES})
 
-# ISR_M2_Node
-set(ISR_M2_NODE_DEPENDENCIES
-  rclcpp
-  tf2
-  tf2_ros
-  geometry_msgs
-  nav_msgs
-  multibot2_msgs
-)
+# # ISR_M2_Node
+# set(ISR_M2_NODE_DEPENDENCIES
+#   rclcpp
+#   tf2
+#   tf2_ros
+#   geometry_msgs
+#   nav_msgs
+#   multibot2_msgs
+# )
 
-set(ISR_M2_NODE_EXEC_NAME "isr_m2_node")
-file(GLOB DRIVER_SOURCES "src/driver/*.cpp")
-add_executable(${ISR_M2_NODE_EXEC_NAME} ${DRIVER_SOURCES})
+# set(ISR_M2_NODE_EXEC_NAME "isr_m2_node")
+# file(GLOB DRIVER_SOURCES "src/driver/*.cpp")
+# add_executable(${ISR_M2_NODE_EXEC_NAME} ${DRIVER_SOURCES})
 
-ament_target_dependencies(${ISR_M2_NODE_EXEC_NAME} ${ISR_M2_NODE_DEPENDENCIES})
+# ament_target_dependencies(${ISR_M2_NODE_EXEC_NAME} ${ISR_M2_NODE_DEPENDENCIES})
 
 ################################################################################
 # Install
@@ -93,20 +94,20 @@ install(TARGETS
 
 ament_export_libraries(${FAKE_DRIVER_LIB_NAME})
 
-# ISR_M2_Node
-install(
-  TARGETS ${ISR_M2_NODE_LIB_NAME}
-  ARCHIVE DESTINATION lib
-  LIBRARY DESTINATION lib
-  RUNTIME DESTINATION bin
-)
+# # ISR_M2_Node
+# install(
+#   TARGETS ${ISR_M2_NODE_LIB_NAME}
+#   ARCHIVE DESTINATION lib
+#   LIBRARY DESTINATION lib
+#   RUNTIME DESTINATION bin
+# )
 
-install(TARGETS
-  ${ISR_M2_NODE_EXEC_NAME}
-  DESTINATION lib/${PROJECT_NAME}
-)
+# install(TARGETS
+#   ${ISR_M2_NODE_EXEC_NAME}
+#   DESTINATION lib/${PROJECT_NAME}
+# )
 
-ament_export_libraries(${ISR_M2_NODE_LIB_NAME})
+# ament_export_libraries(${ISR_M2_NODE_LIB_NAME})
 
 install(DIRECTORY
   launch

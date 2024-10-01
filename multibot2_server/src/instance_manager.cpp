@@ -41,11 +41,16 @@ namespace multibot2_server
 
     void Instance_Manager::init_parameters()
     {
-        nh_->declare_parameter("server.record", record_);
-        nh_->declare_parameter("server.communication_range", communication_range_);
-        nh_->declare_parameter("server.lookahead_dist", lookahead_dist_);
-        nh_->declare_parameter("server.subgoal_generator.duration", subgoal_generator_duration_);
-        nh_->declare_parameter("server.mode", mode_);
+        if (not(nh_->has_parameter("server.record")))
+            nh_->declare_parameter("server.record", record_);
+        if (not(nh_->has_parameter("server.communication_range")))
+            nh_->declare_parameter("server.communication_range", communication_range_);
+        if (not(nh_->has_parameter("server.lookahead_dist")))
+            nh_->declare_parameter("server.lookahead_dist", lookahead_dist_);
+        if (not(nh_->has_parameter("server.subgoal_generator.duration")))
+            nh_->declare_parameter("server.subgoal_generator.duration", subgoal_generator_duration_);
+        if (not(nh_->has_parameter("server.mode")))
+            nh_->declare_parameter("server.mode", mode_);
 
         nh_->get_parameter_or("server.record", record_, record_);
         nh_->get_parameter_or("server.communication_range", communication_range_, communication_range_);
@@ -200,8 +205,10 @@ namespace multibot2_server
         robots_.insert(std::make_pair(robotName, robot_ros));
 
         RCLCPP_INFO(nh_->get_logger(), "Instance_Manager::insertRobot()");
-        RCLCPP_INFO(nh_->get_logger(), "New Robot " + robotName + " is registered.");
-        RCLCPP_INFO(nh_->get_logger(), "Total Robots: " + std::to_string(robots_.size()) + "EA");
+        // RCLCPP_INFO(nh_->get_logger(), "New Robot " + robotName + " is registered.");
+        RCLCPP_INFO(nh_->get_logger(), "New Robot %s is registered.", robotName);
+        // RCLCPP_INFO(nh_->get_logger(), "Total Robots: " + std::to_string(robots_.size()) + "EA");
+        RCLCPP_INFO(nh_->get_logger(), "Total Robots: %dEA", robots_.size());
         std::cout << robot_ros.robot_ << std::endl;
     }
 
@@ -212,8 +219,10 @@ namespace multibot2_server
         {
             robots_.erase(_robotName);
 
-            RCLCPP_INFO(nh_->get_logger(), "Robot " + _robotName + " is deleted.");
-            RCLCPP_INFO(nh_->get_logger(), "Total Robots: " + std::to_string(robots_.size()) + "EA\n");
+            // RCLCPP_INFO(nh_->get_logger(), "Robot " + _robotName + " is deleted.");
+            RCLCPP_INFO(nh_->get_logger(), "Robot %s is deleted.", _robotName);
+            // RCLCPP_INFO(nh_->get_logger(), "Total Robots: " + std::to_string(robots_.size()) + "EA\n");
+            RCLCPP_INFO(nh_->get_logger(), "Total Robots: %dEA", robots_.size());
         }
     }
 
@@ -442,6 +451,43 @@ namespace multibot2_server
         }
         total_transition_length /= robots_.size();
         std::cout << "Transition length: " << total_transition_length << "m" << std::endl;
+
+        export_poses();
+    }
+
+    void Instance_Manager::export_poses()
+    {
+        std::string directory_path_string = "src/multibot2/multibot2_server/result";
+        
+        std::filesystem::path directory_path(directory_path_string);
+        if (std::filesystem::exists(directory_path))
+            std::filesystem::remove_all(directory_path_string);
+
+        std::filesystem::create_directories(directory_path_string);
+
+        YAML::Node pose_result;
+
+        for (const auto &pose_data : pose_table_)
+        {
+            YAML::Node poses;
+
+            int cnt = 1;
+            for (const auto &pose : pose_data.second)
+            {
+                YAML::Node single_pose;
+                std::vector<double> pose_vec = {pose.x(), pose.y()};
+                single_pose[std::to_string(cnt)] = pose_vec;
+                single_pose[std::to_string(cnt)].SetStyle(YAML::EmitterStyle::Flow);
+
+                poses["poses"].push_back(single_pose);
+                cnt++;
+            }
+
+            pose_result.push_back(poses);
+        }
+
+        std::ofstream result(directory_path_string + "/poses.yaml");
+        result << pose_result;
     }
 
     void Instance_Manager::convert_map_to_polygons()

@@ -5,7 +5,8 @@ using namespace std::chrono_literals;
 namespace multibot2_server
 {
     MultibotServer::MultibotServer()
-        : nav2_util::LifecycleNode("server", "", true)
+        // : nav2_util::LifecycleNode("server", "", true)
+        : nav2_util::LifecycleNode("server", "", rclcpp::NodeOptions().automatically_declare_parameters_from_overrides(true))
     {
         init_variables();
 

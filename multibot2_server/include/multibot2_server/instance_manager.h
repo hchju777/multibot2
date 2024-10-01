@@ -150,6 +150,8 @@ namespace multibot2_server
 
         void export_recording();
 
+        void export_poses();
+
     protected:
         void convert_map_to_polygons();
 

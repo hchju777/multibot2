@@ -48,8 +48,10 @@ namespace multibot2_server::SubgoalGenerator
         if (not(get_polygon(_point, vn_poly)))
             return false;
 
+        // Todo: There are some errors when creating BVC. Can't use CGAL::Lazy_exact_nt when update to humble(ver. 5.4)
         CGAL::Lazy_exact_nt<boost::multiprecision::mpq_rational> offset(_offset);
-        auto inner_offset_polygons = CGAL::create_interior_skeleton_and_offset_polygons_2(offset, vn_poly);
+        // auto inner_offset_polygons = CGAL::create_interior_skeleton_and_offset_polygons_2(offset, vn_poly);
+        auto inner_offset_polygons = CGAL::create_interior_skeleton_and_offset_polygons_2(_offset, vn_poly);
 
         if (inner_offset_polygons.empty())
             return false;

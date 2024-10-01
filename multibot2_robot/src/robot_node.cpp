@@ -5,7 +5,8 @@ using namespace std::chrono_literals;
 namespace multibot2_robot
 {
     MultibotRobot::MultibotRobot()
-        : nav2_util::LifecycleNode("robot", "", true)
+        // : nav2_util::LifecycleNode("robot", "", true)
+        : nav2_util::LifecycleNode("robot", "", rclcpp::NodeOptions().automatically_declare_parameters_from_overrides(true))
     {
         init_variables();
         init_parameters();
@@ -51,7 +52,8 @@ namespace multibot2_robot
 
     void MultibotRobot::init_parameters()
     {
-        nh_->declare_parameter("robot.goal_tolerance", goal_tolerance_);
+        if (not(nh_->has_parameter("robot.goal_tolerance")))
+            nh_->declare_parameter("robot.goal_tolerance", goal_tolerance_);
 
         nh_->get_parameter_or("robot.goal_tolerance", goal_tolerance_, goal_tolerance_);
 
@@ -177,7 +179,7 @@ namespace multibot2_robot
 
         try
         {
-            cmd_vel_2d = teb_local_planner_->computeVelocityCommands(local_current_pose, current_twist);
+            cmd_vel_2d = teb_local_planner_->computeVelocityCommands(local_current_pose, current_twist, nullptr);
         }
         catch (const std::exception &e)
         {

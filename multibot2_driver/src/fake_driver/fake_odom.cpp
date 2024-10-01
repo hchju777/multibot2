@@ -50,7 +50,8 @@ namespace multibot2_driver::DiffDrive
     void FakeOdom::update_callback()
     {
         static rclcpp::Time update_time = this->now();
-        rclcpp::Duration duration(this->now().nanoseconds() - update_time.nanoseconds());
+        // rclcpp::Duration duration(this->now().nanoseconds() - update_time.nanoseconds());
+        rclcpp::Duration duration = rclcpp::Duration::from_nanoseconds(this->now().nanoseconds() - update_time.nanoseconds());
 
         if ((update_time.nanoseconds() - prev_cmd_vel_time_.nanoseconds()) * 1e-9 > cmd_vel_timeout_)
         {
@@ -66,14 +67,20 @@ namespace multibot2_driver::DiffDrive
 
     void FakeOdom::init_parameters()
     {
-        this->declare_parameter("robot.wheels.seperation", wheel_seperation_);
-        this->declare_parameter("robot.wheels.radius", wheel_radius_);
+        if (not(this->has_parameter("robot.wheels.seperation")))
+            this->declare_parameter("robot.wheels.seperation", wheel_seperation_);
+        if (not(this->has_parameter("robot.wheels.radius")))
+            this->declare_parameter("robot.wheels.radius", wheel_radius_);
 
-        this->declare_parameter("namespace", namespace_);
-        this->declare_parameter("robot.odometry.frame_id", frame_id_of_odometry_);
-        this->declare_parameter("robot.odometry.child_frame_id", child_frame_id_of_odometry_);
+        if (not(this->has_parameter("namespace")))
+            this->declare_parameter("namespace", namespace_);
+        if (not(this->has_parameter("robot.odometry.frame_id")))
+            this->declare_parameter("robot.odometry.frame_id", frame_id_of_odometry_);
+        if (not(this->has_parameter("robot.odometry.child_frame_id")))
+            this->declare_parameter("robot.odometry.child_frame_id", child_frame_id_of_odometry_);
 
-        this->declare_parameter("use_gazebo_odom", use_gazebo_odom_);
+        if (not(this->has_parameter("use_gazebo_odom")))
+            this->declare_parameter("use_gazebo_odom", use_gazebo_odom_);
 
         this->get_parameter_or("robot.wheels.seperation", wheel_seperation_, wheel_seperation_);
         this->get_parameter_or("robot.wheels.radius", wheel_radius_, wheel_radius_);
