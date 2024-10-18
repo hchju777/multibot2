@@ -10,8 +10,8 @@
         theta: 0.0
 
       spawn: # Optional: Gazebo Initial Spwan Pose
-        x: 15.3
-        y: 8.7
+        x: 15.8
+        y: 13.7
         theta: 0.0
 
       # # Random Forest

@@ -12,8 +12,6 @@ def generate_launch_description():
     multibot2_robot_dir = get_package_share_directory("multibot2_robot")
     
     # List of robots to be simulated
-    # robots = ["robot1", "robot2", "robot3", "robot4"]
-    # robots = ["robot1", "robot2", "robot3", "robot4", "robot5", "robot6", "robot7", "robot8"]
     robots = ["robot1", "robot2", "robot3", "robot4", "robot5", "robot6"]
     
     ld = LaunchDescription()

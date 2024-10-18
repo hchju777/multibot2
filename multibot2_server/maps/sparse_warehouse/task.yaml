@@ -1,71 +1,35 @@
 - name: Robot1
   loop: False
   task_queue:
-    - location: [15.3, 11.7, 0.0]
+    - location: [6.8, 16.7, 0.0]
       duration: 1.0
 
 - name: Robot2
   loop: False
   task_queue:
-    - location: [24.1, 21.7, 0.0]
+    - location: [15.8, 16.7, 0.0]
       duration: 1.0
 
 - name: Robot3
   loop: False
   task_queue:
-    - location: [6.5, 6.7, 0.0]
+    - location: [15.8, 6.7, 0.0]
       duration: 1.0
 
 - name: Robot4
   loop: False
   task_queue:
-    - location: [15.3, 6.7, 0.0]
+    - location: [15.8, 11.7, 0.0]
       duration: 1.0
 
 - name: Robot5
   loop: False
   task_queue:
-    - location: [24.1, 6.7, 0.0]
+    - location: [6.8, 6.7, 0.0]
       duration: 1.0
 
 - name: Robot6
   loop: False
   task_queue:
-    - location: [6.5, 16.7, 0.0]
-      duration: 1.0
-
-- name: Robot7
-  loop: False
-  task_queue:
-    - location: [15.3, 21.7, 0.0]
-      duration: 1.0
-
-- name: Robot8
-  loop: False
-  task_queue:
-    - location: [24.1, 11.7, 0.0]
-      duration: 1.0
-
-- name: Robot9
-  loop: False
-  task_queue:
-    - location: [15.3, 16.7, 0.0]
-      duration: 1.0
-
-- name: Robot10
-  loop: False
-  task_queue:
-    - location: [6.5, 21.7, 0.0]
-      duration: 1.0
-
-- name: Robot11
-  loop: False
-  task_queue:
-    - location: [24.1, 16.7, 0.0]
-      duration: 1.0
-
-- name: Robot12
-  loop: False
-  task_queue:
-    - location: [6.5, 11.7, 0.0]
+    - location: [6.8, 11.7, 0.0]
       duration: 1.0

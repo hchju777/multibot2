@@ -10,8 +10,8 @@
         theta: 0.0
 
       spawn: # Optional: Gazebo Initial Spwan Pose
-        x: 6.5
-        y: 18.7
+        x: 15.8
+        y: 3.7
         theta: 0.0
 
       # # Warehouse
